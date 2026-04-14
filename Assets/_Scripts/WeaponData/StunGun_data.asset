@@ -10,12 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9940099ec3ff1e74b823295dbde2c82b, type: 3}
-  m_Name: Gun01Data
+  m_Name: StunGun_data
   m_EditorClassIdentifier: Assembly-CSharp::WeaponDataSO
   weaponName: 
-  bulletPrefab: {fileID: 0}
-  muzzleVelocity: 20
-  maxBounces: 2
-  damage: 10
-  fireRate: 0.1
+  bulletPrefab: {fileID: 2708263233625030615, guid: 55697b8a981762049b83fe89b987307e, type: 3}
+  muzzleVelocity: 50
+  maxBounces: 1
+  damage: 0
+  fireRate: 0.2
   penetrationCount: 0
+  effectType: 1
+  effectDuration: 2
+  isBaseWeapon: 0
+  maxAmmo: 1

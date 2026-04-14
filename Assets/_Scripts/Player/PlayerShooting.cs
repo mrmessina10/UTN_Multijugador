@@ -49,16 +49,19 @@ public class PlayerShooting : NetworkBehaviour
     [ClientRpc]
     private void FireClientRpc(Vector3 pos, Vector3 dir)
     {
-        if (activeWeapon == null) return;
+        if (activeWeapon == null || activeWeapon.bulletPrefab == null) return;
 
-        // AQUÍ SE CORRIGE EL ERROR: Ahora enviamos los 6 parámetros exactos
+        // Pasamos el prefab como primer argumento
         ProjectilePool.Instance.SpawnProjectile(
+            activeWeapon.bulletPrefab,
             pos,
             dir,
             activeWeapon.muzzleVelocity,
             activeWeapon.maxBounces,
-            activeWeapon.damage,          // Argumento 5
-            activeWeapon.penetrationCount // Argumento 6
+            activeWeapon.damage,
+            activeWeapon.penetrationCount,
+            activeWeapon.effectType,
+            activeWeapon.effectDuration
         );
     }
 }

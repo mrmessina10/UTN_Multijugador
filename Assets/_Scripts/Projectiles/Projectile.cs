@@ -1,12 +1,6 @@
 using UnityEngine;
 using System;
 
-// Interfaz básica para todo lo que pueda recibir daño (Jugadores, Enemigos, Cajas)
-public interface IDamageable
-{
-    void TakeDamage(float amount);
-}
-
 public class Projectile : MonoBehaviour
 {
     private Vector3 _direction;
@@ -15,12 +9,15 @@ public class Projectile : MonoBehaviour
     private float _damage;
     private int _remainingPenetration;
 
+    // variables para los Status Effects
+    private StatusEffect _effectType;
+    private float _effectDuration;
+
     private float _maxLifetime = 5f;
     private float _currentLifetime;
     private Action<Projectile> _onRelease;
 
-    // Recibe daño y penetración
-    public void Initialize(Vector3 position, Vector3 direction, float speed, int bounces, float damage, int penetration, Action<Projectile> onRelease)
+    public void Initialize(Vector3 position, Vector3 direction, float speed, int bounces, float damage, int penetration, StatusEffect effectType, float effectDuration, Action<Projectile> onRelease)
     {
         transform.position = position;
         _direction = direction.normalized;
@@ -28,6 +25,8 @@ public class Projectile : MonoBehaviour
         _remainingBounces = bounces;
         _damage = damage;
         _remainingPenetration = penetration;
+        _effectType = effectType;
+        _effectDuration = effectDuration;
         _onRelease = onRelease;
         _currentLifetime = 0;
 
@@ -52,38 +51,32 @@ public class Projectile : MonoBehaviour
     {
         if (Physics.Raycast(transform.position, _direction, out RaycastHit hit, distance + 0.1f))
         {
-            // 1. Verificar si impactamos algo que puede recibir daño (Ej: Enemigo/Jugador)
             if (hit.collider.TryGetComponent(out IDamageable damageableTarget))
             {
-                damageableTarget.TakeDamage(_damage);
+                damageableTarget.TakeDamage(_damage, _effectType, _effectDuration);
 
-                // Lógica de Penetración
                 if (_remainingPenetration > 0)
                 {
                     _remainingPenetration--;
-                    // Movemos la bala un poco hacia adelante para evitar que colisione 
-                    // con el mismo enemigo en el próximo frame
                     transform.position = hit.point + _direction * 0.1f;
                 }
                 else
                 {
-                    _onRelease?.Invoke(this); // Sin penetración, la bala se destruye
+                    _onRelease?.Invoke(this);
                 }
             }
-            // 2. Si es una pared o entorno duro
             else
             {
-                // Lógica de Rebote
                 if (_remainingBounces > 0)
                 {
                     _direction = Vector3.Reflect(_direction, hit.normal);
-                    _direction.y = 0; // Mantener en el plano horizontal 2D
+                    _direction.y = 0;
                     _remainingBounces--;
                     transform.position = hit.point + _direction * 0.05f;
                 }
                 else
                 {
-                    _onRelease?.Invoke(this); // Sin rebotes, la bala se destruye
+                    _onRelease?.Invoke(this);
                 }
             }
         }
