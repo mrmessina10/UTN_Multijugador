@@ -21,5 +21,6 @@ MonoBehaviour:
   penetrationCount: 0
   effectType: 1
   effectDuration: 2
+  weaponColor: {r: 0.022472408, g: 0.2583163, b: 0.9528302, a: 1}
   isBaseWeapon: 0
   maxAmmo: 1

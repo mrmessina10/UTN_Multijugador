@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: -8830606798427918826}
   - component: {fileID: 2789898067465534402}
   - component: {fileID: 2146159193531950984}
+  - component: {fileID: 4846300630601328836}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -275,7 +276,47 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   inputReader: {fileID: 11400000, guid: 6277852d148bfc643b15c30240bdc13c, type: 2}
   firePoint: {fileID: 7685827917709183584}
-  activeWeapon: {fileID: 11400000, guid: 05cc958cbcab417489088f3563d7b351, type: 2}
+  weaponDatabase: {fileID: 11400000, guid: 187aba668d71fe4498ba0654df5b092d, type: 2}
+  currentWeaponID:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  currentAmmo:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 5
+  regenProgress:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+--- !u!114 &4846300630601328836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735449044781690328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0396a8a3d92f684f9a7b7ff1535736d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
+  ShowTopMostFoldoutHeaderGroup: 1
+  stateMachine: {fileID: 7427097725780671051}
+  playerCollider: {fileID: 5595058913208119026}
+  currentHealth:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 3
+  isDead:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!1 &3802925444146050524
 GameObject:
   m_ObjectHideFlags: 0

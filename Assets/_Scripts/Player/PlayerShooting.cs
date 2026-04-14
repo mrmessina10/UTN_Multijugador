@@ -6,62 +6,94 @@ public class PlayerShooting : NetworkBehaviour
     [Header("Dependencies")]
     [SerializeField] private InputReaderSO inputReader;
     [SerializeField] private Transform firePoint;
+    [SerializeField] private WeaponDatabaseSO weaponDatabase;
 
-    [Header("Weapon Configuration")]
-    [SerializeField] private WeaponDataSO activeWeapon; // Referencia a las estadísticas
+    [Header("Network State")]
+    public NetworkVariable<int> currentWeaponID = new NetworkVariable<int>(0);
+    public NetworkVariable<int> currentAmmo = new NetworkVariable<int>(5);
+    public NetworkVariable<float> regenProgress = new NetworkVariable<float>(0);
+
+    private WeaponDataSO _activeWeapon;
+    // Propiedad pública para que la UI pueda leer los datos del arma actual
+    public WeaponDataSO ActiveWeapon => _activeWeapon;
 
     private float _lastFireTime;
+    private const float REGEN_TIME = 2.0f;
 
     public override void OnNetworkSpawn()
     {
-        if (!IsOwner) return;
-        inputReader.OnShootEvent.AddListener(HandleShoot);
+        currentWeaponID.OnValueChanged += (prev, next) => UpdateLocalWeapon(next);
+        UpdateLocalWeapon(currentWeaponID.Value);
+
+        if (IsOwner)
+        {
+            inputReader.OnShootEvent.AddListener(HandleShoot);
+
+            // CONECTAR LA UI LOCAL
+            PlayerAmmoUI ui = FindAnyObjectByType<PlayerAmmoUI>();
+            if (ui != null) ui.Initialize(this);
+        }
     }
 
-    public override void OnNetworkDespawn()
+    private void UpdateLocalWeapon(int id)
     {
-        if (!IsOwner) return;
-        inputReader.OnShootEvent.RemoveListener(HandleShoot);
+        _activeWeapon = weaponDatabase.GetWeaponByID(id);
+    }
+
+    private void Update()
+    {
+        if (!IsServer) return;
+
+        if (_activeWeapon.isBaseWeapon && currentAmmo.Value < _activeWeapon.maxAmmo)
+        {
+            regenProgress.Value += Time.deltaTime / REGEN_TIME;
+            if (regenProgress.Value >= 1.0f)
+            {
+                currentAmmo.Value++;
+                regenProgress.Value = 0;
+            }
+        }
     }
 
     private void HandleShoot(bool isPressed)
     {
-        // Seguridad: evitar errores si olvidaste asignar el arma en el editor
-        if (activeWeapon == null)
-        {
-            Debug.LogWarning("No hay un WeaponDataSO asignado al Player!");
-            return;
-        }
-
-        if (isPressed && Time.time >= _lastFireTime + activeWeapon.fireRate)
+        if (isPressed && Time.time >= _lastFireTime + _activeWeapon.fireRate && currentAmmo.Value > 0)
         {
             _lastFireTime = Time.time;
-            FireServerRpc(firePoint.position, firePoint.forward);
+            FireServerRpc();
         }
     }
 
     [ServerRpc]
-    private void FireServerRpc(Vector3 pos, Vector3 dir)
+    private void FireServerRpc()
     {
-        FireClientRpc(pos, dir);
+        if (currentAmmo.Value <= 0) return;
+
+        currentAmmo.Value--;
+        FireClientRpc(firePoint.position, firePoint.forward);
+
+        if (!_activeWeapon.isBaseWeapon && currentAmmo.Value <= 0)
+        {
+            currentWeaponID.Value = 0;
+            currentAmmo.Value = weaponDatabase.GetWeaponByID(0).maxAmmo;
+        }
     }
 
     [ClientRpc]
     private void FireClientRpc(Vector3 pos, Vector3 dir)
     {
-        if (activeWeapon == null || activeWeapon.bulletPrefab == null) return;
-
-        // Pasamos el prefab como primer argumento
         ProjectilePool.Instance.SpawnProjectile(
-            activeWeapon.bulletPrefab,
-            pos,
-            dir,
-            activeWeapon.muzzleVelocity,
-            activeWeapon.maxBounces,
-            activeWeapon.damage,
-            activeWeapon.penetrationCount,
-            activeWeapon.effectType,
-            activeWeapon.effectDuration
+            _activeWeapon.bulletPrefab, pos, dir, _activeWeapon.muzzleVelocity,
+            _activeWeapon.maxBounces, _activeWeapon.damage, _activeWeapon.penetrationCount,
+            _activeWeapon.effectType, _activeWeapon.effectDuration
         );
+    }
+
+    public void EquipWeapon(int id, int ammo)
+    {
+        if (!IsServer) return;
+        currentWeaponID.Value = id;
+        currentAmmo.Value = ammo;
+        regenProgress.Value = 0;
     }
 }

@@ -33,7 +33,10 @@ public class WeaponDataSO : ScriptableObject
     public StatusEffect effectType = StatusEffect.None;
     public float effectDuration = 0f;
 
+    [Header("Visual Identity")]
+    public Color weaponColor = Color.white; // Color tematico de cada arma para legibilidad
+
     [Header("PickUp Logic")]
-    public bool isBaseWeapon = true; // Si es true, tiene munición infinita
-    public int maxAmmo = 5; // Solo se usa si isBaseWeapon es false
+    public bool isBaseWeapon = true;
+    public int maxAmmo = 5;
 }
