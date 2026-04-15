@@ -4,7 +4,6 @@ using UnityEngine;
 public class AmmoPickup : NetworkBehaviour
 {
     [Header("Settings")]
-    [SerializeField] private WeaponDataSO weaponToGive;
     [SerializeField] private WeaponDatabaseSO database;
 
     [Header("Visuals")]
@@ -12,46 +11,65 @@ public class AmmoPickup : NetworkBehaviour
     [SerializeField] private float floatSpeed = 2f;
     [SerializeField] private float floatAmplitude = 0.25f;
 
+    // Variables inyectadas por el Spawner
+    private WeaponDataSO _weaponToGive;
+    private PickUpSpawner _mySpawner;
+
     private Vector3 _startPos;
     private bool _isInitialized = false;
 
-    private void Start()
+    // El Spawner llama a esto antes de OnNetworkSpawn
+    //el spawner se encarga de crear el pickup y asignarle el arma que va a dar.
+    public void SetupFromSpawner(WeaponDataSO weapon, PickUpSpawner spawner)
     {
-        _startPos = transform.position;
-        _isInitialized = true;
+        _weaponToGive = weapon;
+        _mySpawner = spawner;
     }
+
     public override void OnNetworkSpawn()
     {
         _startPos = transform.position;
 
-        if (weaponToGive != null && meshRenderer != null)
+        if (_weaponToGive != null && meshRenderer != null)
         {
-            meshRenderer.material.color = weaponToGive.weaponColor;
+            meshRenderer.material.color = _weaponToGive.weaponColor;
         }
+
+        _isInitialized = true;
     }
 
     private void Update()
     {
+        if (!_isInitialized) return;
+
         float newY = _startPos.y + Mathf.Sin(Time.time * floatSpeed) * floatAmplitude;
         transform.position = new Vector3(_startPos.x, newY, _startPos.z);
-
         transform.Rotate(Vector3.up, 45f * Time.deltaTime);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!IsServer) return;
-
         if (other.TryGetComponent(out PlayerShooting shooting))
         {
-            int id = database.GetIDByWeapon(weaponToGive);
-            int ammoAmount = weaponToGive.maxAmmo;
+            if (shooting.IsOwner && meshRenderer != null)
+            {
+                meshRenderer.enabled = false;
+            }
 
-            shooting.EquipWeapon(id, ammoAmount);
+            if (IsServer)
+            {
+                int id = database.GetIDByWeapon(_weaponToGive);
+                int ammoAmount = _weaponToGive.maxAmmo;
 
-            GetComponent<NetworkObject>().Despawn(false);
+                shooting.EquipWeapon(id, ammoAmount);
 
-            gameObject.SetActive(false);
+                // Le avisamos al spot que empiece a contar el tiempo
+                if (_mySpawner != null) _mySpawner.NotifyPickupCollected();
+
+                // Destruimos el objeto en toda la red
+                // (Al instanciarlo dinámicamente, Despawn() aplica un Destroy por defecto)
+                GetComponent<NetworkObject>().Despawn();
+            }
         }
     }
 }

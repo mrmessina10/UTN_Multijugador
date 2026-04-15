@@ -39,4 +39,8 @@ public class WeaponDataSO : ScriptableObject
     [Header("PickUp Logic")]
     public bool isBaseWeapon = true;
     public int maxAmmo = 5;
+
+    [Header("Spawn Randomizer Settings")]
+    [Tooltip("Higher weight = higher spawn chance. (e.g., 30 for common, 5 for rare)")]
+    public float spawnWeight = 10f;
 }

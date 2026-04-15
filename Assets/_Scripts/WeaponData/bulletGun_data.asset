@@ -21,5 +21,7 @@ MonoBehaviour:
   penetrationCount: 0
   effectType: 0
   effectDuration: 0
+  weaponColor: {r: 1, g: 0.65023607, b: 0.0990566, a: 1}
   isBaseWeapon: 1
   maxAmmo: 5
+  spawnWeight: 10
