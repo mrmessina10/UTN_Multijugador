@@ -20,8 +20,12 @@ public class PlayerShooting : NetworkBehaviour
     private float _lastFireTime;
     private const float REGEN_TIME = 2.0f;
 
+    private PlayerHealth _playerHealth;
+
     public override void OnNetworkSpawn()
     {
+        _playerHealth = GetComponent<PlayerHealth>();
+
         currentWeaponID.OnValueChanged += (prev, next) => UpdateLocalWeapon(next);
         UpdateLocalWeapon(currentWeaponID.Value);
 
@@ -44,6 +48,8 @@ public class PlayerShooting : NetworkBehaviour
     {
         if (!IsServer) return;
 
+        if (_playerHealth != null && _playerHealth.isDead.Value) return; // Si el jugador esta muerto, no regenera municion
+
         if (_activeWeapon.isBaseWeapon && currentAmmo.Value < _activeWeapon.maxAmmo)
         {
             regenProgress.Value += Time.deltaTime / REGEN_TIME;
@@ -57,6 +63,8 @@ public class PlayerShooting : NetworkBehaviour
 
     private void HandleShoot(bool isPressed)
     {
+        if (_playerHealth != null && _playerHealth.isDead.Value) return; // Si el jugador esta muerto, no puede disparar
+
         if (isPressed && Time.time >= _lastFireTime + _activeWeapon.fireRate && currentAmmo.Value > 0)
         {
             _lastFireTime = Time.time;
@@ -67,6 +75,8 @@ public class PlayerShooting : NetworkBehaviour
     [ServerRpc]
     private void FireServerRpc()
     {
+        if (_playerHealth != null && _playerHealth.isDead.Value) return; // Validación adicional en el servidor para evitar disparar si el jugador esta muerto
+
         if (currentAmmo.Value <= 0) return;
 
         currentAmmo.Value--;

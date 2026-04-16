@@ -22,17 +22,16 @@ public class PickUpSpawner : NetworkBehaviour
     private void SpawnPickup()
     {
         WeaponDataSO selectedWeapon = GetWeightedRandomWeapon();
-
         Vector3 spawnPosition = transform.position + (Vector3.up * heightOffset);
 
         GameObject pickupGo = Instantiate(pickupPrefab, spawnPosition, Quaternion.identity);
+
+        pickupGo.GetComponent<NetworkObject>().Spawn();
 
         if (pickupGo.TryGetComponent(out AmmoPickup ammoPickup))
         {
             ammoPickup.SetupFromSpawner(selectedWeapon, this);
         }
-
-        pickupGo.GetComponent<NetworkObject>().Spawn();
     }
 
     private WeaponDataSO GetWeightedRandomWeapon()

@@ -10,10 +10,14 @@ public class PlayerAiming : NetworkBehaviour
     private Plane groundPlane;
     private Vector2 currentAimInput;
 
+    private PlayerHealth _playerHealth;
+
     private void Awake()
     {
         mainCamera = Camera.main; // Cacheo la referencia a la cámara principal para optimizar el rendimiento
         groundPlane = new Plane(Vector3.up, Vector3.zero); // Plano horizontal en y=0
+
+        _playerHealth = GetComponent<PlayerHealth>();
     }
 
     public override void OnNetworkSpawn()
@@ -36,6 +40,10 @@ public class PlayerAiming : NetworkBehaviour
     private void Update()
     {
         if (!IsOwner) return;
+
+        if (_playerHealth != null && _playerHealth.isDead.Value) return;
+        // Si el jugador esta muerto, no puede apuntar
+
         ProcessAiming();
     }
 

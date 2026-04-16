@@ -11,31 +11,51 @@ public class AmmoPickup : NetworkBehaviour
     [SerializeField] private float floatSpeed = 2f;
     [SerializeField] private float floatAmplitude = 0.25f;
 
-    // Variables inyectadas por el Spawner
+    [Header("Network State")]
+    // Inicializamos en -1 para luego asignarle un valor asi ocultamos latencia.
+    public NetworkVariable<int> networkWeaponID = new NetworkVariable<int>(-1);
+
     private WeaponDataSO _weaponToGive;
     private PickUpSpawner _mySpawner;
-
     private Vector3 _startPos;
     private bool _isInitialized = false;
 
-    // El Spawner llama a esto antes de OnNetworkSpawn
-    //el spawner se encarga de crear el pickup y asignarle el arma que va a dar.
     public void SetupFromSpawner(WeaponDataSO weapon, PickUpSpawner spawner)
     {
-        _weaponToGive = weapon;
         _mySpawner = spawner;
+        networkWeaponID.Value = database.GetIDByWeapon(weapon);
     }
 
     public override void OnNetworkSpawn()
     {
         _startPos = transform.position;
 
-        if (_weaponToGive != null && meshRenderer != null)
+        // Suscripción al evento de cambio
+        networkWeaponID.OnValueChanged += (prev, current) =>
         {
-            meshRenderer.material.color = _weaponToGive.weaponColor;
+            if (current != -1) UpdateWeaponState(current);
+        };
+
+        // Si somos el Host, lo procesamos al instante
+        if (networkWeaponID.Value != -1)
+        {
+            UpdateWeaponState(networkWeaponID.Value);
         }
 
         _isInitialized = true;
+    }
+
+    private void UpdateWeaponState(int weaponID)
+    {
+        _weaponToGive = database.GetWeaponByID(weaponID);
+
+        if (_weaponToGive != null && meshRenderer != null)
+        {
+            meshRenderer.material.color = _weaponToGive.weaponColor;
+
+            // Solo encendemos el Renderer visual cuando ya tenemos el color aplicado.
+            meshRenderer.enabled = true;
+        }
     }
 
     private void Update()
@@ -58,16 +78,13 @@ public class AmmoPickup : NetworkBehaviour
 
             if (IsServer)
             {
-                int id = database.GetIDByWeapon(_weaponToGive);
+                // validación por seguridad no dar munición si ID = -1
+                if (_weaponToGive == null) return;
+
                 int ammoAmount = _weaponToGive.maxAmmo;
+                shooting.EquipWeapon(networkWeaponID.Value, ammoAmount);
 
-                shooting.EquipWeapon(id, ammoAmount);
-
-                // Le avisamos al spot que empiece a contar el tiempo
                 if (_mySpawner != null) _mySpawner.NotifyPickupCollected();
-
-                // Destruimos el objeto en toda la red
-                // (Al instanciarlo dinámicamente, Despawn() aplica un Destroy por defecto)
                 GetComponent<NetworkObject>().Despawn();
             }
         }
