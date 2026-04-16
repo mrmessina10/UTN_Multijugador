@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using static UnityEngine.UI.Scrollbar;
 
 [CreateAssetMenu(fileName = "InputReader", menuName = "Game/Input/InputReader")]
 public class InputReaderSO : ScriptableObject, GameInput.IPlayerActions
@@ -8,7 +9,7 @@ public class InputReaderSO : ScriptableObject, GameInput.IPlayerActions
     public UnityEvent<Vector2> OnMoveEvent;
     public UnityEvent<Vector2> OnAimEvent;
     public UnityEvent<bool> OnShootEvent;
-    public UnityEvent OnCrouchEvent;
+    public UnityEvent<bool> OnRollEvent;
 
     private GameInput _gameInput;
 
@@ -48,11 +49,15 @@ public class InputReaderSO : ScriptableObject, GameInput.IPlayerActions
             OnShootEvent?.Invoke(false);
         }
     }
-    public void OnCrouch(InputAction.CallbackContext context)
+    public void OnRoll(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Performed)
         {
-            OnCrouchEvent?.Invoke();
+            OnRollEvent?.Invoke(true);
+        }
+        else if (context.phase == InputActionPhase.Canceled)
+        {
+            OnRollEvent?.Invoke(false);
         }
     }
 }

@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8593886221781917811}
   - component: {fileID: 8942238200502205654}
   - component: {fileID: 2882721499023184013}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: PickUpSpawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}

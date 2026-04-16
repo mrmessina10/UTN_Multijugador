@@ -69,6 +69,10 @@ public class AmmoPickup : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!IsServer) return; // Solo el servidor maneja la lógica de recogida
+
+        if (!NetworkObject.IsSpawned) return; // Validación de seguridad para evitar errores si el objeto ya fue recogido
+
         if (other.TryGetComponent(out PlayerShooting shooting))
         {
             if (shooting.IsOwner && meshRenderer != null)
@@ -85,7 +89,7 @@ public class AmmoPickup : NetworkBehaviour
                 shooting.EquipWeapon(networkWeaponID.Value, ammoAmount);
 
                 if (_mySpawner != null) _mySpawner.NotifyPickupCollected();
-                GetComponent<NetworkObject>().Despawn();
+                NetworkObject.Despawn(true);
             }
         }
     }
