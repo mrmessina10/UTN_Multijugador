@@ -18,7 +18,7 @@ public class ProjectilePool : MonoBehaviour
         else Destroy(gameObject);
     }
 
-    public void SpawnProjectile(GameObject prefab, Vector3 pos, Vector3 dir, float speed, int bounces, float damage, int penetration, StatusEffect effectType, float effectDuration)
+    public void SpawnProjectile(GameObject prefab, Vector3 pos, Vector3 dir, int bounces, float damage, int penetration, StatusEffect effectType, float effectDuration)
     {
         // Si no existe un pool para este prefab, lo creamos
         if (!_pools.ContainsKey(prefab))
@@ -27,7 +27,8 @@ public class ProjectilePool : MonoBehaviour
         }
 
         Projectile p = _pools[prefab].Get();
-        p.Initialize(pos, dir, speed, bounces, damage, penetration, effectType, effectDuration, (proj) => _pools[prefab].Release(proj));
+
+        p.Initialize(pos, dir, bounces, damage, penetration, effectType, effectDuration, (proj) => _pools[prefab].Release(proj));
     }
 
     private IObjectPool<Projectile> CreateNewPool(GameObject prefab)
