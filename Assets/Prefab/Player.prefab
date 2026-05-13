@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1991435877036777238}
   - component: {fileID: 4607916798493056993}
   - component: {fileID: 1988467463446285973}
+  - component: {fileID: 4253920231852275608}
   - component: {fileID: 5595058913208119026}
   - component: {fileID: 5999814522962453662}
   - component: {fileID: 5696634786448962698}
@@ -18,7 +19,10 @@ GameObject:
   - component: {fileID: 7427097725780671051}
   - component: {fileID: -8830606798427918826}
   - component: {fileID: 2789898067465534402}
-  m_Layer: 0
+  - component: {fileID: 2146159193531950984}
+  - component: {fileID: 4846300630601328836}
+  - component: {fileID: 2709537302171898725}
+  m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -99,6 +103,33 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!54 &4253920231852275608
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735449044781690328}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 112
+  m_CollisionDetection: 0
 --- !u!136 &5595058913208119026
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -106,7 +137,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1735449044781690328}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 0d386c4eeaa1b54439ebcc2777cf28ae, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -259,6 +290,88 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCameraSetup
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &2146159193531950984
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735449044781690328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55efc0fc6d96d8d4aad263dd9ebd3907, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerShooting
+  ShowTopMostFoldoutHeaderGroup: 1
+  inputReader: {fileID: 11400000, guid: 6277852d148bfc643b15c30240bdc13c, type: 2}
+  firePoint: {fileID: 7685827917709183584}
+  weaponDatabase: {fileID: 11400000, guid: 187aba668d71fe4498ba0654df5b092d, type: 2}
+  currentWeaponID:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  currentAmmo:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 5
+  regenProgress:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+--- !u!114 &4846300630601328836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735449044781690328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0396a8a3d92f684f9a7b7ff1535736d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
+  ShowTopMostFoldoutHeaderGroup: 1
+  stateMachine: {fileID: 7427097725780671051}
+  playerCollider: {fileID: 5595058913208119026}
+  maxHealth: 5
+  currentHealth:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 5
+  isDead:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+--- !u!114 &2709537302171898725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735449044781690328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85c8f407d74946a448a63e92cd4da8d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerRoll
+  ShowTopMostFoldoutHeaderGroup: 1
+  inputReader: {fileID: 11400000, guid: 6277852d148bfc643b15c30240bdc13c, type: 2}
+  stateMachine: {fileID: 7427097725780671051}
+  rb: {fileID: 4253920231852275608}
+  playerCollider: {fileID: 5595058913208119026}
+  rollDistance: 5
+  rollSpeed: 15
+  rollCooldown: 2
+  isRolling:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!1 &3802925444146050524
 GameObject:
   m_ObjectHideFlags: 0
@@ -271,7 +384,7 @@ GameObject:
   - component: {fileID: 1600342423607572923}
   - component: {fileID: 2939931494068397677}
   - component: {fileID: 3861356513128332386}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FirePoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -286,13 +399,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3802925444146050524}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.5, y: -0, z: 0.802}
   m_LocalScale: {x: 0.09564151, y: 0.0127522005, z: 0.09564151}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1991435877036777238}
-  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1600342423607572923
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -385,7 +498,7 @@ GameObject:
   - component: {fileID: 68379673680590296}
   - component: {fileID: 8169154839667875687}
   - component: {fileID: 8792118633970115517}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Cylinder
   m_TagString: Untagged
   m_Icon: {fileID: 0}

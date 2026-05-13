@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9940099ec3ff1e74b823295dbde2c82b, type: 3}
+  m_Name: SlowGun_data
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponDataSO
+  weaponName: 
+  bulletPrefab: {fileID: 2708263233625030615, guid: 8c40ec74992f116489bf2d9d0d90e13d, type: 3}
+  muzzleVelocity: 10
+  maxBounces: 0
+  damage: 0
+  fireRate: 1
+  penetrationCount: 0
+  effectType: 2
+  effectDuration: 10
+  weaponColor: {r: 0.084905684, g: 0.07889821, b: 0.07889821, a: 1}
+  isBaseWeapon: 0
+  maxAmmo: 2
