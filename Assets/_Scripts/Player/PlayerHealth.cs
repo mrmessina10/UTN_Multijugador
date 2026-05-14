@@ -3,6 +3,16 @@ using UnityEngine;
 using System;
 using System.Collections;
 
+/// <summary>
+/// PlayerHealth es el componente encargado de manejar la vida del jugador, su muerte y efectos de estado relacionados.
+/// - Permite ajustar el TTK desde el Inspector gracias a la variable maxHealth.
+/// - Sincroniza la vida y el estado de muerte a través de NetworkVariables para que todos los clientes estén actualizados.
+/// - Implementa el método TakeDamage para recibir daño, aplicando efectos de estado como Stun o Slow según sea necesario.
+/// - Dispara eventos OnHealthChanged y OnPlayerDied para que otros sistemas (como la UI) puedan reaccionar sin acoplarse directamente a PlayerHealth.
+/// - Al morir, desactiva el collider y el state machine del jugador para evitar interacciones no deseadas, y al revivir los reactiva.
+/// - El sistema de Crowd Control se maneja mediante corrutinas que aplican y remueven los efectos después de su duración,
+///   asegurando que solo el cliente afectado ejecute la lógica correspondiente.
+/// </summary>
 public class PlayerHealth : NetworkBehaviour, IDamageable
 {
     [Header("Dependencies")]
@@ -117,18 +127,29 @@ public class PlayerHealth : NetworkBehaviour, IDamageable
 
     private void HandleDeathState(bool wasDead, bool isNowDead)
     {
-        if (isNowDead)
+        if (isNowDead) // EL JUGADOR MUERE
         {
             if (playerCollider != null) playerCollider.enabled = false;
-
-            if (IsOwner && stateMachine != null)
-            {
-                stateMachine.enabled = false;
-            }
-
+            if (IsOwner && stateMachine != null) stateMachine.enabled = false;
             if (IsOwner) OnPlayerDied?.Invoke();
 
             // TODO: animator.SetTrigger("Die");
         }
+        else // EL JUGADOR REVIVE (isNowDead == false)
+        {
+            if (playerCollider != null) playerCollider.enabled = true;
+            if (IsOwner && stateMachine != null) stateMachine.enabled = true;
+
+            // TODO: animator.SetTrigger("Respawn");
+        }
+    }
+
+    public void Revive()
+    {
+        if (!IsServer) return;
+
+        // Restablecemos las variables. Esto disparará los eventos OnValueChanged en todos los clientes.
+        currentHealth.Value = maxHealth;
+        isDead.Value = false;
     }
 }
