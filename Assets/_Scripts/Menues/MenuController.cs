@@ -52,4 +52,15 @@ public class MenuController : MonoBehaviour
         Debug.Log("Saliendo del juego...");
         Application.Quit(); 
     }
+
+    public void ConfirmExit()
+{
+        #if UNITY_EDITOR
+            
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            
+            Application.Quit();
+        #endif
+}
 }
