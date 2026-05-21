@@ -78,12 +78,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Projectile
   visualModel: {fileID: 682989726673751838}
+  trail: {fileID: 0}
+  speed: 45
   arcHeight: 2
   visualArcDistance: 40
-  speed: 45
-  initialDistanceCapacity: 40
   distanceBonusPerBounce: 10
+  initialDistanceCapacity: 40
+  transitionArcDistance: 5
+  groundedSpeedMultiplier: 0.2
+  groundedFriction: 0.98
   groundDuration: 1
+  direction: {x: 0, y: 0, z: 0}
+  remainingBounces: 0
+  damage: 0
+  remainingPenetration: 0
+  effectType: 0
+  effectDuration: 0
+  totalDistanceTraveled: 0
+  currentMaxDistance: 0
+  distanceSinceLastBounce: 0
+  startVisualLocalPos: {x: 0, y: 0, z: 0}
+  transitionDistance: 0
+  apexHeight: 0
+  currentGroundedSpeed: 0
+  groundTimer: 0
 --- !u!114 &-6605695807135612508
 MonoBehaviour:
   m_ObjectHideFlags: 0

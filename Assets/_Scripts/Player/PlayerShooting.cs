@@ -92,6 +92,8 @@ public class PlayerShooting : NetworkBehaviour
     [ClientRpc]
     private void FireClientRpc(Vector3 pos, Vector3 dir)
     {
+        if (ProjectilePool.Instance == null) { Debug.LogError("ERROR: ProjectilePool.Instance es NULL en esta escena."); return; }
+        if (_activeWeapon == null) { Debug.LogError("ERROR: _activeWeapon es NULL. La base de datos no cargó el arma."); return; }
         ProjectilePool.Instance.SpawnProjectile(
             _activeWeapon.bulletPrefab, pos, dir,
             _activeWeapon.maxBounces, _activeWeapon.damage, _activeWeapon.penetrationCount,

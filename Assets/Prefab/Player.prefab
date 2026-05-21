@@ -290,6 +290,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCameraSetup
   ShowTopMostFoldoutHeaderGroup: 1
+  targetPoint: {fileID: 1991435877036777238}
 --- !u!114 &2146159193531950984
 MonoBehaviour:
   m_ObjectHideFlags: 0
