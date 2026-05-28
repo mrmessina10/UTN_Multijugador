@@ -28,6 +28,7 @@ public class Projectile : MonoBehaviour
     [HideInInspector] public int remainingPenetration;
     [HideInInspector] public StatusEffect effectType;
     [HideInInspector] public float effectDuration;
+    [HideInInspector] public ulong shooterNetworkId;
 
     // --- TRACKERS DE ESTADO INTERNO ---
     // Públicas pero ocultas para que los Estados puedan leerlas y modificarlas
@@ -51,7 +52,7 @@ public class Projectile : MonoBehaviour
         if (trail == null) trail = GetComponentInChildren<TrailRenderer>();
     }
 
-    public void Initialize(Vector3 pos, Vector3 dir, int bounces, float dmg, int pen, StatusEffect effect, float effectDur, Action<Projectile> releaseAction)
+    public void Initialize(Vector3 pos, Vector3 dir, int bounces, float dmg, int pen, StatusEffect effect, float effectDur, ulong shooterId, Action<Projectile> releaseAction)
     {
         transform.position = pos;
         direction = dir.normalized;
@@ -73,6 +74,8 @@ public class Projectile : MonoBehaviour
         transitionDistance = 0f;
         currentGroundedSpeed = speed * groundedSpeedMultiplier;
         groundTimer = 0f;
+
+        shooterNetworkId = shooterId;
 
         if (visualModel != null)
             visualModel.localPosition = startVisualLocalPos;

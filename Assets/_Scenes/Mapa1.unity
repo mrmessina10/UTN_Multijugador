@@ -489,14 +489,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2930734411913803284, guid: 5b4b8cef8d23bbb4f922a0a41943631d, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 4.3671904
-      objectReference: {fileID: 0}
-    - target: {fileID: 2930734411913803284, guid: 5b4b8cef8d23bbb4f922a0a41943631d, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -13.43842
-      objectReference: {fileID: 0}
     - target: {fileID: 4172671186896117222, guid: 5b4b8cef8d23bbb4f922a0a41943631d, type: 3}
       propertyPath: m_Name
       value: 000000-GameArchitecture
@@ -1820,9 +1812,10 @@ GameObject:
   - component: {fileID: 521630933}
   - component: {fileID: 521630932}
   - component: {fileID: 521630931}
+  - component: {fileID: 521630934}
   m_Layer: 0
   m_Name: BlueTeamSpawn
-  m_TagString: Untagged
+  m_TagString: BlueTeamSpawn
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1836,7 +1829,7 @@ Transform:
   m_GameObject: {fileID: 521630929}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -29.5, y: -2.0578, z: -31.91}
+  m_LocalPosition: {x: -29.5, y: -2, z: -31.91}
   m_LocalScale: {x: 6.5668, y: 0.6652, z: 5.6102}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1920,6 +1913,19 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 521630929}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &521630934
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 521630929}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b120faa2871c82e478d870b5742394b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TeamSpawnPoint
+  team: 1
 --- !u!1001 &528515630
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2264,9 +2270,10 @@ GameObject:
   - component: {fileID: 635759523}
   - component: {fileID: 635759522}
   - component: {fileID: 635759521}
+  - component: {fileID: 635759524}
   m_Layer: 0
   m_Name: RedTeamSpawn
-  m_TagString: Untagged
+  m_TagString: RedTeamSpawn
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2280,7 +2287,7 @@ Transform:
   m_GameObject: {fileID: 635759519}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 33.9166, y: -2.0578, z: 32.3249}
+  m_LocalPosition: {x: 33.9166, y: -2, z: 32.3249}
   m_LocalScale: {x: 6.5668, y: 0.6652, z: 5.6102}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2364,6 +2371,19 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 635759519}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &635759524
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 635759519}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b120faa2871c82e478d870b5742394b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TeamSpawnPoint
+  team: 0
 --- !u!1001 &660512134
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5929,15 +5949,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6792376584403202051, guid: 523a2f83ee6b96f4a867011c3f592d99, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -37.66282
+      value: -28.9
       objectReference: {fileID: 0}
     - target: {fileID: 6792376584403202051, guid: 523a2f83ee6b96f4a867011c3f592d99, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 2.98
       objectReference: {fileID: 0}
     - target: {fileID: 6792376584403202051, guid: 523a2f83ee6b96f4a867011c3f592d99, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -34.18773
+      value: -19.29
       objectReference: {fileID: 0}
     - target: {fileID: 6792376584403202051, guid: 523a2f83ee6b96f4a867011c3f592d99, type: 3}
       propertyPath: m_LocalRotation.w
@@ -5967,6 +5987,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7774082768528238845, guid: 523a2f83ee6b96f4a867011c3f592d99, type: 3}
+      propertyPath: redTeamSpawnPoints.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7774082768528238845, guid: 523a2f83ee6b96f4a867011c3f592d99, type: 3}
+      propertyPath: blueTeamSpawnPoints.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7774082768528238845, guid: 523a2f83ee6b96f4a867011c3f592d99, type: 3}
+      propertyPath: 'redTeamSpawnPoints.Array.data[0]'
+      value: 
+      objectReference: {fileID: 635759520}
+    - target: {fileID: 7774082768528238845, guid: 523a2f83ee6b96f4a867011c3f592d99, type: 3}
+      propertyPath: 'blueTeamSpawnPoints.Array.data[0]'
+      value: 
+      objectReference: {fileID: 521630930}
     - target: {fileID: 7774082768528238845, guid: 523a2f83ee6b96f4a867011c3f592d99, type: 3}
       propertyPath: 'fallbackSpawnPoints.Array.data[0]'
       value: 

@@ -182,9 +182,17 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 2626562549734607292, guid: 5b4b8cef8d23bbb4f922a0a41943631d, type: 3}
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 2461877130423833571, guid: 5b4b8cef8d23bbb4f922a0a41943631d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 774749873}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5b4b8cef8d23bbb4f922a0a41943631d, type: 3}
+--- !u!4 &71368894 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2461877130423833571, guid: 5b4b8cef8d23bbb4f922a0a41943631d, type: 3}
+  m_PrefabInstance: {fileID: 71368893}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &118295608
 GameObject:
   m_ObjectHideFlags: 0
@@ -583,6 +591,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3909003074017543432, guid: ae3c539b6777cbe44a6742161a14cbad, type: 3}
+      propertyPath: m_MaxPacketQueueSize
+      value: 512
+      objectReference: {fileID: 0}
     - target: {fileID: 6376512017633466482, guid: ae3c539b6777cbe44a6742161a14cbad, type: 3}
       propertyPath: m_Name
       value: 000000-NetworkManager
@@ -596,9 +608,17 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6617540761437546370, guid: ae3c539b6777cbe44a6742161a14cbad, type: 3}
-      propertyPath: 'NetworkConfig.Prefabs.NetworkPrefabsLists.Array.data[1]'
+      propertyPath: 'NetworkConfig.Prefabs.NetworkPrefabsLists.Array.data[0]'
       value: 
       objectReference: {fileID: 11400000, guid: 1dc38c8523c6ed34680476b2b2a5d9b5, type: 2}
+    - target: {fileID: 6617540761437546370, guid: ae3c539b6777cbe44a6742161a14cbad, type: 3}
+      propertyPath: 'NetworkConfig.Prefabs.NetworkPrefabsLists.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 52ec6a66f73f1b44d95d1b729d4e9a54, type: 2}
+    - target: {fileID: 6617540761437546370, guid: ae3c539b6777cbe44a6742161a14cbad, type: 3}
+      propertyPath: 'NetworkConfig.Prefabs.NetworkPrefabsLists.Array.data[2]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 52ec6a66f73f1b44d95d1b729d4e9a54, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1690,12 +1710,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 774749870}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 38.68185, y: 0, z: 36.35696}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 71368894}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &775553109
 GameObject:
@@ -5468,4 +5488,3 @@ SceneRoots:
   - {fileID: 1492937087}
   - {fileID: 1616381979}
   - {fileID: 435445338}
-  - {fileID: 774749873}

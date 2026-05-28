@@ -97,7 +97,8 @@ public class PlayerShooting : NetworkBehaviour
         ProjectilePool.Instance.SpawnProjectile(
             _activeWeapon.bulletPrefab, pos, dir,
             _activeWeapon.maxBounces, _activeWeapon.damage, _activeWeapon.penetrationCount,
-            _activeWeapon.effectType, _activeWeapon.effectDuration
+            _activeWeapon.effectType, _activeWeapon.effectDuration,
+            NetworkObjectId
         );
     }
 

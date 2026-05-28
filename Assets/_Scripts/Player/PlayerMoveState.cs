@@ -3,16 +3,14 @@ using UnityEngine;
 public class PlayerMoveState : BaseState
 {
     private float moveSpeed = 6f;
-    private float gravity = -9.81f;
-    private Vector3 velocity;
 
-    public PlayerMoveState(PlayerStateMachine stateMachine) : base(stateMachine) 
-    { 
+    public PlayerMoveState(PlayerStateMachine stateMachine) : base(stateMachine)
+    {
     }
 
     public override void Enter()
     {
-       //
+        //
     }
 
     public override void Tick()
@@ -22,7 +20,7 @@ public class PlayerMoveState : BaseState
 
     public override void Exit()
     {
-       //
+        //
     }
 
     public void CalculateMovement()
@@ -30,21 +28,16 @@ public class PlayerMoveState : BaseState
         Vector2 input = stateMachine.CurrentMovementInput;
         Vector3 moveDirection = new Vector3(input.x, 0f, input.y);
 
-        //normalizo el movimiento
+        // normalizo el movimiento
         if (moveDirection.sqrMagnitude > 0f)
         {
             moveDirection.Normalize();
         }
 
+        // Medida de seguridad absoluta: forzamos Y a 0
+        moveDirection.y = 0f;
+
+        // Único llamado de movimiento, exclusivamente en los ejes X y Z
         stateMachine.CharacterController.Move(moveDirection * (moveSpeed * Time.deltaTime));
-
-        if (stateMachine.CharacterController.isGrounded && velocity.y < 0)
-        {
-            velocity.y = -2f; // Pequeña fuerza para mantener al jugador pegado al suelo
-        }
-
-        velocity.y += gravity * Time.deltaTime;
-
-        stateMachine.CharacterController.Move(velocity * Time.deltaTime);
     }
 }

@@ -24,10 +24,10 @@ public class PlayerRoll : NetworkBehaviour
     );
 
     private PlayerHealth _playerHealth;
+    private CharacterController _cc;
     private Vector2 _currentMoveInput;
     private float _lastRollTime;
 
-    // Variables para el sistema de capas y físicas
     private bool _originalGravityState;
     private int _normalLayer;
     private int _rollingLayer;
@@ -36,7 +36,9 @@ public class PlayerRoll : NetworkBehaviour
     {
         if (rb == null) rb = GetComponent<Rigidbody>();
         if (playerCollider == null) playerCollider = GetComponent<CapsuleCollider>();
+
         _playerHealth = GetComponent<PlayerHealth>();
+        _cc = GetComponent<CharacterController>();
 
         _lastRollTime = -rollCooldown;
 
@@ -90,7 +92,7 @@ public class PlayerRoll : NetworkBehaviour
 
         if (stateMachine != null) stateMachine.enabled = false;
 
-        // Apagamos gravedad localmente y cambiamos a la capa que ignora el suelo/enemigos
+        // Delegamos las físicas temporales al Rigidbody
         TogglePhysics(true);
         SetRollingServerRpc(true);
 
@@ -102,21 +104,20 @@ public class PlayerRoll : NetworkBehaviour
 
         // TODO: Animator.SetTrigger("Roll");
 
-        // Movimiento puro en plano XZ (Forzamos Y a 0 ya que no hay gravedad)
         while (Time.time < startTime + rollDuration)
         {
             rb.linearVelocity = new Vector3(rollDirection.x * rollSpeed, 0f, rollDirection.z * rollSpeed);
             yield return new WaitForFixedUpdate();
         }
 
-        // Restauración
         rb.linearVelocity = Vector3.zero;
+
         if (stateMachine != null && !_playerHealth.isDead.Value)
         {
             stateMachine.enabled = true;
         }
 
-        // Restauramos gravedad y volvemos a la capa normal
+        // Devolvemos el control al CharacterController
         TogglePhysics(false);
         SetRollingServerRpc(false);
     }
@@ -130,8 +131,6 @@ public class PlayerRoll : NetworkBehaviour
     private void HandleRollStateChanged(bool previous, bool current)
     {
         if (IsOwner) return;
-
-        // Sincronizamos la capa visual/física en las pantallas de los demás clientes
         gameObject.layer = current ? _rollingLayer : _normalLayer;
     }
 
@@ -139,11 +138,17 @@ public class PlayerRoll : NetworkBehaviour
     {
         if (isRollingState)
         {
+            if (_cc != null) _cc.enabled = false; // Apagamos CC
+            rb.isKinematic = false;               // Activamos Rigidbody dinámico
+
             gameObject.layer = _rollingLayer;
             rb.useGravity = false;
         }
         else
         {
+            rb.isKinematic = true;                // Apagamos Rigidbody dinámico
+            if (_cc != null) _cc.enabled = true;  // Encendemos CC
+
             gameObject.layer = _normalLayer;
             rb.useGravity = _originalGravityState;
         }

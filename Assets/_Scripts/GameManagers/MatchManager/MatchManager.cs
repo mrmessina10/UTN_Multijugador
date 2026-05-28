@@ -12,7 +12,9 @@ public class MatchManager : NetworkBehaviour
 
     [Header("Match State")]
     public NetworkVariable<MatchState> currentState = new NetworkVariable<MatchState>(MatchState.WaitingForPlayers);
-    public NetworkVariable<float> stateTimer = new NetworkVariable<float>(0f);
+
+    // Patrón timestamp evita el colapso de red
+    public NetworkVariable<double> stateEndTime = new NetworkVariable<double>(0);
 
     [Header("Match Settings")]
     [SerializeField] private int minPlayersToStart = 2;
@@ -25,6 +27,7 @@ public class MatchManager : NetworkBehaviour
     public MatchSpawnController Spawner { get; private set; }
 
     private Coroutine _matchLoopCoroutine;
+    private HashSet<ulong> _syncedClients = new HashSet<ulong>();
 
     private void Awake()
     {
@@ -39,37 +42,53 @@ public class MatchManager : NetworkBehaviour
     {
         if (!IsServer) return;
 
+        NetworkManager.Singleton.SceneManager.OnSceneEvent += HandleSceneEvent;
+
+        // Forzamos la validación de clientes ya listos al cargar (Ej. el Host)
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
-            Spawner.SpawnPlayerForClient(clientId);
+            StartCoroutine(SpawnAndCheckReady(clientId));
         }
-
-        NetworkManager.Singleton.OnClientConnectedCallback += HandleClientConnected;
-        NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += HandleSceneLoaded;
     }
 
     public override void OnNetworkDespawn()
     {
         if (!IsServer || NetworkManager.Singleton == null) return;
-        NetworkManager.Singleton.OnClientConnectedCallback -= HandleClientConnected;
+
         if (NetworkManager.Singleton.SceneManager != null)
-            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= HandleSceneLoaded;
+            NetworkManager.Singleton.SceneManager.OnSceneEvent -= HandleSceneEvent;
     }
 
-    private void HandleClientConnected(ulong clientId)
+    private void HandleSceneEvent(SceneEvent sceneEvent)
     {
-        if (currentState.Value == MatchState.WaitingForPlayers && NetworkManager.Singleton.ConnectedClients.Count >= minPlayersToStart)
+        if (sceneEvent.SceneEventType == SceneEventType.SynchronizeComplete)
         {
-            if (_matchLoopCoroutine != null) StopCoroutine(_matchLoopCoroutine);
-            _matchLoopCoroutine = StartCoroutine(MatchLoopRoutine());
+            StartCoroutine(SpawnAndCheckReady(sceneEvent.ClientId));
         }
     }
 
-    private void HandleSceneLoaded(string sceneName, UnityEngine.SceneManagement.LoadSceneMode mode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
+    private IEnumerator SpawnAndCheckReady(ulong clientId)
     {
-        if (!IsServer || sceneName != "Mapa1") return;
+        // Permite al cliente inicializar la memoria interna de Netcode
+        yield return new WaitForSeconds(0.5f);
 
-        foreach (var clientId in clientsCompleted) Spawner.SpawnPlayerForClient(clientId);
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
+        {
+            if (client.PlayerObject == null)
+            {
+                Spawner.SpawnPlayerForClient(clientId);
+            }
+
+            _syncedClients.Add(clientId);
+
+            if (currentState.Value == MatchState.WaitingForPlayers &&
+                _syncedClients.Count >= minPlayersToStart &&
+                _syncedClients.Count == NetworkManager.Singleton.ConnectedClients.Count)
+            {
+                if (_matchLoopCoroutine != null) StopCoroutine(_matchLoopCoroutine);
+                _matchLoopCoroutine = StartCoroutine(MatchLoopRoutine());
+            }
+        }
     }
 
     private IEnumerator MatchLoopRoutine()
@@ -79,33 +98,41 @@ public class MatchManager : NetworkBehaviour
         while (!matchIsOver)
         {
             currentState.Value = MatchState.RoundStarting;
-            stateTimer.Value = startDelay;
+            stateEndTime.Value = NetworkManager.Singleton.ServerTime.Time + startDelay;
 
+            // Asegura que el PlayerObject existe localmente antes de forzar su teletransporte
+            yield return new WaitForSeconds(0.5f);
             Spawner.RespawnAllPlayers();
 
-            while (stateTimer.Value > 0) { stateTimer.Value -= Time.deltaTime; yield return null; }
+            while (NetworkManager.Singleton.ServerTime.Time < stateEndTime.Value)
+            {
+                yield return null;
+            }
 
             currentState.Value = MatchState.RoundActive;
-            stateTimer.Value = roundDuration;
+            stateEndTime.Value = NetworkManager.Singleton.ServerTime.Time + roundDuration;
             MatchScoreController.Team roundWinner = MatchScoreController.Team.None;
 
-            while (stateTimer.Value > 0)
+            while (NetworkManager.Singleton.ServerTime.Time < stateEndTime.Value)
             {
-                stateTimer.Value -= Time.deltaTime;
                 Score.UpdateAlivePlayersStats();
                 roundWinner = Score.CheckRoundWinner();
 
                 if (roundWinner != MatchScoreController.Team.None) break;
-                yield return null;
+
+                yield return new WaitForSeconds(0.2f);
             }
 
             Score.AddPointToTeam(roundWinner);
             matchIsOver = Score.CheckMatchWinner(roundsToWin);
 
             currentState.Value = MatchState.RoundEnded;
-            stateTimer.Value = endDelay;
+            stateEndTime.Value = NetworkManager.Singleton.ServerTime.Time + endDelay;
 
-            while (stateTimer.Value > 0) { stateTimer.Value -= Time.deltaTime; yield return null; }
+            while (NetworkManager.Singleton.ServerTime.Time < stateEndTime.Value)
+            {
+                yield return null;
+            }
 
             if (!matchIsOver) Score.AdvanceRound();
         }

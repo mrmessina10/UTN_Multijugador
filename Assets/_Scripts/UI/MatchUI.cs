@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System;
+using Unity.Netcode;
 
 public class MatchUI : MonoBehaviour
 {
@@ -16,11 +17,12 @@ public class MatchUI : MonoBehaviour
     private void Update()
     {
         if (MatchManager.Instance == null || MatchManager.Instance.Score == null) return;
+        if (NetworkManager.Singleton == null) return;
 
-        TimeSpan time = TimeSpan.FromSeconds(Mathf.Max(0, MatchManager.Instance.stateTimer.Value));
+        double remainingTime = MatchManager.Instance.stateEndTime.Value - NetworkManager.Singleton.ServerTime.Time;
+        TimeSpan time = TimeSpan.FromSeconds(Mathf.Max(0, (float)remainingTime));
         timerText.text = time.ToString(@"mm\:ss");
 
-        // Lectura de datos a través del acceso público al submódulo Score
         roundText.text = $"Round {MatchManager.Instance.Score.currentRound.Value}";
         matchStateText.text = FormatMatchState(MatchManager.Instance.currentState.Value);
 

@@ -1,40 +1,85 @@
-using UnityEngine;
+using System.Collections;
 using Unity.Netcode;
+using UnityEngine;
 
-/// <summary>
-/// PlayerStateController es el componente encargado de manejar el estado del jugador, específicamente su posición y física al morir y revivir.
-/// - Permite teletransportar al jugador a un punto de spawn específico al revivir, asegurando que el jugador reaparezca en la ubicación correcta.
-/// - Al revivir, también se encargará de eliminar cualquier inercia física previa (como derrapes o caídas) para que el jugador no reaparezca con movimientos no deseados.
-/// - El método ResetPlayerClientRpc se llama desde el servidor para que cada cliente ejecute la lógica de reseteo localmente, manteniendo la sincronización en red.
-/// - Este script se mantiene separado de PlayerHealth para seguir el principio de responsabilidad única, permitiendo que cada componente se enfoque en su función específica.
-///   Esto también facilita futuras expansiones, como agregar efectos visuales o sonoros al revivir sin afectar la lógica de salud.
-/// </summary>
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody), typeof(CharacterController))]
 public class PlayerStateController : NetworkBehaviour
 {
     private Rigidbody _rb;
     private PlayerHealth _health;
+    private CharacterController _cc;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody>();
         _health = GetComponent<PlayerHealth>();
+        _cc = GetComponent<CharacterController>();
+
+        if (_rb != null) _rb.isKinematic = true;
+        if (_cc != null) _cc.enabled = false;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer)
+        {
+            if (_cc != null) _cc.enabled = true;
+        }
+        else
+        {
+            StartCoroutine(ClientWaitNetworkSync());
+        }
+    }
+
+    public void ServerRespawnPlayer(Vector3 spawnPosition)
+    {
+        if (!IsServer) return;
+
+        if (_health != null) _health.Revive();
+
+        StartCoroutine(ServerTeleportRoutine(spawnPosition));
+        PrepareClientTeleportClientRpc(); // <- Llamada corregida
+    }
+
+    private IEnumerator ServerTeleportRoutine(Vector3 spawnPosition)
+    {
+        if (_cc != null) _cc.enabled = false;
+
+        if (_rb != null)
+        {
+            _rb.linearVelocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
+            _rb.isKinematic = true;
+        }
+
+        transform.position = spawnPosition + (Vector3.up * 2f);
+
+        yield return new WaitForFixedUpdate();
+
+        if (_cc != null) _cc.enabled = true;
     }
 
     [ClientRpc]
-    public void ResetPlayerClientRpc(Vector3 spawnPosition)
+    private void PrepareClientTeleportClientRpc()
     {
-        // 1. Teletransportamos al jugador (NGO requiere que el dueño o el server mueva el Transform)
-        transform.position = spawnPosition;
+        if (IsServer) return;
 
-        // 2. Matamos inercias físicas (frenamos derrapes o caídas previas)
-        _rb.linearVelocity = Vector3.zero;
-        _rb.angularVelocity = Vector3.zero;
+        StartCoroutine(ClientWaitNetworkSync());
+    }
 
-        // 3. El servidor revive al jugador (solo el server puede escribir en NetworkVariables)
-        if (IsServer && _health != null)
+    private IEnumerator ClientWaitNetworkSync()
+    {
+        if (_cc != null) _cc.enabled = false;
+
+        if (_rb != null)
         {
-            _health.Revive();
+            _rb.linearVelocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
+            _rb.isKinematic = true;
         }
+
+        yield return new WaitForSeconds(0.3f);
+
+        if (_cc != null) _cc.enabled = true;
     }
 }
