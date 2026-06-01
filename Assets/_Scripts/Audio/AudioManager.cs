@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class AudioManager : MonoBehaviour
 {
@@ -8,8 +9,9 @@ public class AudioManager : MonoBehaviour
     public AudioSource sfxSource;
 
     public AudioClip menuMusic;
-    public AudioClip gameplayMusic;
+    public AudioClip gameplayMusic; 
     public AudioClip gunShotClip;
+    public AudioClip map1Music;
 
     private void Awake()
     {
@@ -26,11 +28,40 @@ public class AudioManager : MonoBehaviour
 
     private void Start()
     {
-        PlayMusic(menuMusic);
+        // Corregido al nombre real de tu escena
+        if (SceneManager.GetActiveScene().name == "MenuScene")
+        {
+            PlayMusic(menuMusic);
+        }
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name == "Mapa1")
+        {
+            PlayMusic(map1Music);
+        }
+        else if (scene.name == "MenuScene") // Corregido acá también
+        {
+            PlayMusic(menuMusic);
+        }
     }
 
     public void PlayMusic(AudioClip clip)
     {
+        if (clip == null) return;
+        if (musicSource.clip == clip && musicSource.isPlaying) return;
+
         musicSource.clip = clip;
         musicSource.Play();
     }
@@ -42,6 +73,9 @@ public class AudioManager : MonoBehaviour
 
     public void PlayGunShot()
     {
-        PlaySFX(gunShotClip);
+        if (gunShotClip != null)
+        {
+            PlaySFX(gunShotClip);
+        }
     }
 }

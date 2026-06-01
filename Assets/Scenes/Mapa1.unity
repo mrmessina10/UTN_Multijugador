@@ -5622,6 +5622,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1824659767}
   - component: {fileID: 1824659768}
+  - component: {fileID: 1824659769}
   m_Layer: 0
   m_Name: AudioManager
   m_TagString: Untagged
@@ -5663,6 +5664,20 @@ MonoBehaviour:
   menuMusic: {fileID: 8300000, guid: c125f842b8ff4224ea80da5d824169db, type: 3}
   gameplayMusic: {fileID: 8300000, guid: e50bc433c5c807847aaf4d00f4aad0d4, type: 3}
   gunShotClip: {fileID: 8300000, guid: c1eadcbbe4f42d34f8e91538cb4eae4b, type: 3}
+  map1Music: {fileID: 8300000, guid: e50bc433c5c807847aaf4d00f4aad0d4, type: 3}
+--- !u!114 &1824659769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1824659766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52076fc37e4c0854aa48e06fec4e408a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelController
+  musicaDeEsteMapa: {fileID: 8300000, guid: e50bc433c5c807847aaf4d00f4aad0d4, type: 3}
 --- !u!1001 &1860230344
 PrefabInstance:
   m_ObjectHideFlags: 0

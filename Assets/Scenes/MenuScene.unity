@@ -825,7 +825,9 @@ MonoBehaviour:
   musicSource: {fileID: 1311372179}
   sfxSource: {fileID: 1259136144}
   menuMusic: {fileID: 8300000, guid: c125f842b8ff4224ea80da5d824169db, type: 3}
-  buttonClickClip: {fileID: 8300000, guid: aafb3c2df92b8094baff279c677865ff, type: 3}
+  gameplayMusic: {fileID: 8300000, guid: e50bc433c5c807847aaf4d00f4aad0d4, type: 3}
+  gunShotClip: {fileID: 8300000, guid: c1eadcbbe4f42d34f8e91538cb4eae4b, type: 3}
+  map1Music: {fileID: 8300000, guid: e50bc433c5c807847aaf4d00f4aad0d4, type: 3}
 --- !u!4 &426774412
 Transform:
   m_ObjectHideFlags: 0
