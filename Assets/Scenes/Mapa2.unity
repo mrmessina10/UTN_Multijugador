@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 87d7a1711c92ea04aa547b43bf13d2f4, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -1604,7 +1604,9 @@ MonoBehaviour:
   musicSource: {fileID: 835691114}
   sfxSource: {fileID: 680315171}
   menuMusic: {fileID: 8300000, guid: c125f842b8ff4224ea80da5d824169db, type: 3}
-  buttonClickClip: {fileID: 8300000, guid: aafb3c2df92b8094baff279c677865ff, type: 3}
+  gameplayMusic: {fileID: 0}
+  gunShotClip: {fileID: 0}
+  map1Music: {fileID: 0}
 --- !u!4 &435418052
 Transform:
   m_ObjectHideFlags: 0
