@@ -13,6 +13,7 @@ public class PlayerHealthUI : MonoBehaviour
     [SerializeField] private Transform heartsContainer;
 
     private List<GameObject> _heartIcons = new List<GameObject>();
+    private List<Image> _heartImages = new List<Image>();
     private PlayerHealth _localPlayerHealth;
 
     private void Start()
@@ -30,7 +31,6 @@ public class PlayerHealthUI : MonoBehaviour
 
     private IEnumerator FindLocalPlayerRoutine()
     {
-        // validacion en cascada para asegurar que el NetworkManager, el SpawnManager y el objeto del jugador local estén disponibles antes de intentar acceder a ellos.
         while (NetworkManager.Singleton == null ||
                NetworkManager.Singleton.SpawnManager == null ||
                NetworkManager.Singleton.SpawnManager.GetLocalPlayerObject() == null)
@@ -49,27 +49,25 @@ public class PlayerHealthUI : MonoBehaviour
 
     private void UpdateHearts(int currentHealth, int maxHealth)
     {
-        // Configuración inicial: Instanciar los corazones necesarios si no existen
         if (_heartIcons.Count != maxHealth)
         {
             InitializeHearts(maxHealth);
         }
 
-        // Lógica visual: Apagar/Prender o Animar
         for (int i = 0; i < _heartIcons.Count; i++)
         {
             bool shouldBeActive = i < currentHealth;
-            bool isCurrentlyActive = _heartIcons[i].activeSelf;
 
-            if (shouldBeActive && !isCurrentlyActive)
+            // Leemos el alpha actual para saber si el corazón está visible o no
+            bool isVisuallyActive = _heartImages[i].color.a > 0f;
+
+            if (shouldBeActive && !isVisuallyActive)
             {
-                // El jugador curó HP (o es el inicio de la ronda)
                 _heartIcons[i].SetActive(true);
                 AnimateHeartGain(i);
             }
-            else if (!shouldBeActive && isCurrentlyActive)
+            else if (!shouldBeActive && isVisuallyActive)
             {
-                // El jugador perdió HP
                 AnimateHeartLoss(i);
             }
         }
@@ -77,42 +75,34 @@ public class PlayerHealthUI : MonoBehaviour
 
     private void InitializeHearts(int maxHealth)
     {
-        // Limpiar cualquier corazón residual (útil si se reinicia la ronda)
         foreach (Transform child in heartsContainer)
         {
             Destroy(child.gameObject);
         }
-        _heartIcons.Clear();
 
-        // Instanciar la cantidad exacta de HP máximo
+        _heartIcons.Clear();
+        _heartImages.Clear();
+
         for (int i = 0; i < maxHealth; i++)
         {
             GameObject newHeart = Instantiate(heartPrefab, heartsContainer);
             _heartIcons.Add(newHeart);
+            _heartImages.Add(newHeart.GetComponent<Image>());
         }
     }
 
     // --- HOOKS PARA FUTURAS ANIMACIONES ---
-    //TODO ANIMACIONES
     private void AnimateHeartLoss(int index)
     {
-        if (_heartIcons[index].TryGetComponent(out Image heartImage))
-        {
-            // Obtenemos el color actual y bajamos el canal Alpha (Transparencia) a 0
-            Color transparentColor = heartImage.color;
-            transparentColor.a = 0f;
-            heartImage.color = transparentColor;
-        }
+        Color transparentColor = _heartImages[index].color;
+        transparentColor.a = 0f;
+        _heartImages[index].color = transparentColor;
     }
 
     private void AnimateHeartGain(int index)
     {
-        if (_heartIcons[index].TryGetComponent(out Image heartImage))
-        {
-            // Restauramos el canal Alpha a 1 (100% visible)
-            Color visibleColor = heartImage.color;
-            visibleColor.a = 1f;
-            heartImage.color = visibleColor;
-        }
+        Color visibleColor = _heartImages[index].color;
+        visibleColor.a = 1f;
+        _heartImages[index].color = visibleColor;
     }
 }
