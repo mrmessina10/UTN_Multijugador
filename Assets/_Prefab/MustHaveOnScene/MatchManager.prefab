@@ -73,21 +73,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MatchManager
   ShowTopMostFoldoutHeaderGroup: 1
-  currentState:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
   stateTimer:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+  isSettingUp:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 1
+  warmupCountdown:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 5
   minPlayersToStart: 2
-  startDelay: 3
-  roundDuration: 60
+  startDelay: 5
+  scoreToWin: 10
+  respawnDelay: 3
   endDelay: 5
-  roundsToWin: 3
+  mainMenuSceneName: MenuScene
 --- !u!114 &1613481368992612884
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -101,27 +107,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MatchScoreController
   ShowTopMostFoldoutHeaderGroup: 1
-  currentRound:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 1
   redTeamScore:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
   blueTeamScore:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  redPlayersAlive:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  bluePlayersAlive:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
@@ -142,4 +133,5 @@ MonoBehaviour:
   fallbackSpawnPoints:
   - {fileID: 0}
   - {fileID: 0}
-  playerPrefab: {fileID: 1735449044781690328, guid: d20b76c1efee6ef41b01808ad3e25757, type: 3}
+  redPlayerPrefab: {fileID: 1735449044781690328, guid: 4158be8f4a218ed4a893c19ba4b80de9, type: 3}
+  bluePlayerPrefab: {fileID: 1735449044781690328, guid: 2d76d1139f498fb4bb5a8a983eceb778, type: 3}

@@ -25,6 +25,11 @@ public class MatchActiveState : IMatchState
             manager.Spawner.RespawnPlayer(clientId);
             _respawnQueue.Remove(clientId);
         }
+
+        if (NetworkManager.Singleton.ServerTime.Time >= manager.stateTimer.Value)
+        {
+            manager.ChangeState(new MatchEndedState());
+        }
     }
 
     public void Exit(MatchManager manager)

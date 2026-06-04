@@ -90,7 +90,7 @@ public class PlayerNetworkStateMachine : NetworkBehaviour
         if (!IsServer) return;
         if (Health != null) Health.Revive();
 
-        transform.position = spawnPosition + (Vector3.up * 1.2f);
+        transform.position = spawnPosition;
 
         TeleportOwnerClientRpc(spawnPosition);
 
@@ -102,7 +102,7 @@ public class PlayerNetworkStateMachine : NetworkBehaviour
     {
         if (IsOwner && !IsServer)
         {
-            transform.position = spawnPosition + (Vector3.up * 1.2f);
+            transform.position = spawnPosition;
         }
     }
 
@@ -110,6 +110,12 @@ public class PlayerNetworkStateMachine : NetworkBehaviour
     {
         yield return new WaitForFixedUpdate();
         ChangeStateServer(PlayerNetworkStateType.Alive);
+    }
+
+    public void ForceInitialTeleport(Vector3 targetPosition)
+    {
+        if (!IsServer) return;
+        TeleportOwnerClientRpc(targetPosition);
     }
 
     public void NotifyDeath()

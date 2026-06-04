@@ -10,10 +10,14 @@ public class MatchManager : NetworkBehaviour
 
     public NetworkVariable<double> stateTimer = new NetworkVariable<double>(0);
 
+    public NetworkVariable<bool> isSettingUp = new NetworkVariable<bool>(true);
+    public NetworkVariable<int> warmupCountdown = new NetworkVariable<int>(5);
+
     [Header("TDM Settings")]
     public int minPlayersToStart = 2;
     public float startDelay = 3f;
     public int scoreToWin = 10;
+    public float matchDuration = 300f;
     public float respawnDelay = 3f;
     public float endDelay = 5f;
     public string mainMenuSceneName = "MainMenu";
@@ -71,13 +75,46 @@ public class MatchManager : NetworkBehaviour
             if (client.PlayerObject == null) Spawner.SpawnPlayerForClient(clientId);
             _syncedClients.Add(clientId);
 
+            // Verificamos si todos los clientes requeridos ya están sincronizados e instanciados
             if (_currentState is ConnectingState &&
                 _syncedClients.Count >= minPlayersToStart &&
                 _syncedClients.Count == NetworkManager.Singleton.ConnectedClients.Count)
             {
-                ChangeState(new MatchStartState());
+                StartCoroutine(GlobalWarmupRoutine());
             }
         }
+    }
+
+    private IEnumerator GlobalWarmupRoutine()
+    {
+        isSettingUp.Value = true;
+
+        yield return new WaitForSeconds(0.5f);
+
+        foreach (ulong clientId in _syncedClients)
+        {
+            Transform spawnPoint = Spawner.GetSpawnPointForClient(clientId);
+
+            if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client) && client.PlayerObject != null)
+            {
+                if (client.PlayerObject.TryGetComponent(out PlayerNetworkStateMachine psm))
+                {
+                    psm.ForceInitialTeleport(spawnPoint.position);
+                }
+            }
+        }
+
+        int timeRemaining = (int)startDelay;
+        while (timeRemaining > 0)
+        {
+            warmupCountdown.Value = timeRemaining;
+            yield return new WaitForSeconds(1f);
+            timeRemaining--;
+        }
+
+        isSettingUp.Value = false;
+        stateTimer.Value = NetworkManager.Singleton.ServerTime.Time + matchDuration;
+        ChangeState(new MatchStartState());
     }
 
     private void Update()
@@ -103,6 +140,10 @@ public class MatchManager : NetworkBehaviour
     public bool IsMatchActive()
     {
         return _currentState is MatchActiveState;
+    }
+    public bool IsMatchEnded()
+    {
+        return _currentState is MatchEndedState;
     }
 
     public void RecordDeathAndRespawn(ulong deadClientId, ulong killerClientId)
