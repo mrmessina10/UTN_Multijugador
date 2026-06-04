@@ -16,7 +16,6 @@ GameObject:
   - component: {fileID: 5999814522962453662}
   - component: {fileID: 5696634786448962698}
   - component: {fileID: 3646898743812222220}
-  - component: {fileID: 7427097725780671051}
   - component: {fileID: -8830606798427918826}
   - component: {fileID: 2789898067465534402}
   - component: {fileID: 2146159193531950984}
@@ -165,7 +164,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1854395001
+  GlobalObjectIdHash: 2234849439
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -249,20 +248,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &7427097725780671051
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1735449044781690328}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0937a5e38847d44d955d4e9e0182730, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerStateMachine
-  ShowTopMostFoldoutHeaderGroup: 1
-  _inputReader: {fileID: 11400000, guid: 6277852d148bfc643b15c30240bdc13c, type: 2}
 --- !u!114 &-8830606798427918826
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -290,6 +275,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCameraSetup
   ShowTopMostFoldoutHeaderGroup: 1
+  targetPoint: {fileID: 1991435877036777238}
 --- !u!114 &2146159193531950984
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -334,7 +320,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   ShowTopMostFoldoutHeaderGroup: 1
-  stateMachine: {fileID: 7427097725780671051}
+  playerMovement: {fileID: 0}
   playerCollider: {fileID: 5595058913208119026}
   maxHealth: 5
   currentHealth:
@@ -361,7 +347,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerRoll
   ShowTopMostFoldoutHeaderGroup: 1
   inputReader: {fileID: 11400000, guid: 6277852d148bfc643b15c30240bdc13c, type: 2}
-  stateMachine: {fileID: 7427097725780671051}
+  playerMovement: {fileID: 0}
   rb: {fileID: 4253920231852275608}
   playerCollider: {fileID: 5595058913208119026}
   rollDistance: 5

@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class ActiveFlightState : IProjectileState
@@ -36,26 +37,27 @@ public class ActiveFlightState : IProjectileState
 
     private void CheckCollision(Projectile context, float distance)
     {
-        // Trazamos el vector. Sumamos 0.1f extra a la distancia de este frame 
-        // para garantizar que no nos pasemos de largo a altas velocidades.
         if (Physics.Raycast(context.transform.position, context.direction, out RaycastHit hit, distance + 0.1f))
         {
-            // 1. CHOQUE CON ENTIDAD DAÑABLE (Enemigos, Barriles, Bosses)
+            // Verificamos si el objeto golpeado tiene un NetworkObject (los jugadores lo tienen)
+            if (hit.collider.TryGetComponent(out NetworkObject netObj))
+            {
+                // Si el ID del objeto golpeado es el mismo que el del tirador, ignoramos el impacto
+                if (netObj.NetworkObjectId == context.shooterNetworkId) return;
+            }
+
+            // 1. CHOQUE CON ENTIDAD DAÑABLE
             if (hit.collider.TryGetComponent(out IDamageable damageableTarget))
             {
-                damageableTarget.TakeDamage(context.damage, context.effectType, context.effectDuration);
+                damageableTarget.TakeDamage(context.damage, context.effectType, context.effectDuration, context.shooterNetworkId);
 
                 if (context.remainingPenetration > 0)
                 {
-                    // Si tiene penetración, gastamos una carga y atravesamos.
-                    // Empujamos el proyectil 0.1f hacia adelante para evitar que vuelva a 
-                    // chocar con el mismo collider en el próximo frame.
                     context.remainingPenetration--;
                     context.transform.position = hit.point + context.direction * 0.1f;
                 }
                 else
                 {
-                    // Si agotó la penetración, el proyectil muere y transiciona
                     context.ChangeState(TransitionArcState.Instance);
                 }
             }

@@ -2,13 +2,12 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Collections;
 
-[RequireComponent(typeof(Rigidbody))]
-[RequireComponent(typeof(CapsuleCollider))]
+[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
 public class PlayerRoll : NetworkBehaviour
 {
     [Header("Dependencies")]
     [SerializeField] private InputReaderSO inputReader;
-    [SerializeField] private PlayerStateMachine stateMachine;
+    [SerializeField] private PlayerMovement playerMovement; // <- ACTUALIZADO AL NUEVO SCRIPT
     [SerializeField] private Rigidbody rb;
     [SerializeField] private CapsuleCollider playerCollider;
 
@@ -24,19 +23,23 @@ public class PlayerRoll : NetworkBehaviour
     );
 
     private PlayerHealth _playerHealth;
+    private CharacterController _cc;
     private Vector2 _currentMoveInput;
     private float _lastRollTime;
 
-    // Variables para el sistema de capas y físicas
     private bool _originalGravityState;
     private int _normalLayer;
     private int _rollingLayer;
+    private Coroutine _rollCoroutine;
 
     private void Awake()
     {
         if (rb == null) rb = GetComponent<Rigidbody>();
         if (playerCollider == null) playerCollider = GetComponent<CapsuleCollider>();
+
         _playerHealth = GetComponent<PlayerHealth>();
+        _cc = GetComponent<CharacterController>();
+        if (playerMovement == null) playerMovement = GetComponent<PlayerMovement>();
 
         _lastRollTime = -rollCooldown;
 
@@ -81,16 +84,19 @@ public class PlayerRoll : NetworkBehaviour
         if (_playerHealth != null && _playerHealth.isDead.Value) return;
         if (Time.time < _lastRollTime + rollCooldown) return;
 
-        StartCoroutine(RollRoutine());
+        // GUARDIA: Si la red apagó nuestro CC (ej. estamos respawneando), no podemos rodar
+        if (_cc != null && !_cc.enabled) return;
+
+        if (_rollCoroutine != null) StopCoroutine(_rollCoroutine);
+        _rollCoroutine = StartCoroutine(RollRoutine());
     }
 
     private IEnumerator RollRoutine()
     {
         _lastRollTime = Time.time;
 
-        if (stateMachine != null) stateMachine.enabled = false;
+        if (playerMovement != null) playerMovement.enabled = false;
 
-        // Apagamos gravedad localmente y cambiamos a la capa que ignora el suelo/enemigos
         TogglePhysics(true);
         SetRollingServerRpc(true);
 
@@ -102,23 +108,31 @@ public class PlayerRoll : NetworkBehaviour
 
         // TODO: Animator.SetTrigger("Roll");
 
-        // Movimiento puro en plano XZ (Forzamos Y a 0 ya que no hay gravedad)
         while (Time.time < startTime + rollDuration)
         {
+            // INTERRUPCIÓN DE EMERGENCIA: Si morimos en pleno dash, cortamos el bucle.
+            if (_playerHealth != null && _playerHealth.isDead.Value)
+            {
+                break;
+            }
+
             rb.linearVelocity = new Vector3(rollDirection.x * rollSpeed, 0f, rollDirection.z * rollSpeed);
             yield return new WaitForFixedUpdate();
         }
 
-        // Restauración
-        rb.linearVelocity = Vector3.zero;
-        if (stateMachine != null && !_playerHealth.isDead.Value)
-        {
-            stateMachine.enabled = true;
-        }
+        // Freno del Rigidbody
+        if (!rb.isKinematic) rb.linearVelocity = Vector3.zero;
 
-        // Restauramos gravedad y volvemos a la capa normal
-        TogglePhysics(false);
+        // Verificamos si sobrevivimos al roll para saber si debemos devolverle el control al CC
+        bool isStillAlive = _playerHealth == null || !_playerHealth.isDead.Value;
+
+        TogglePhysics(false, isStillAlive);
         SetRollingServerRpc(false);
+
+        if (playerMovement != null && isStillAlive)
+        {
+            playerMovement.enabled = true;
+        }
     }
 
     [ServerRpc]
@@ -130,20 +144,27 @@ public class PlayerRoll : NetworkBehaviour
     private void HandleRollStateChanged(bool previous, bool current)
     {
         if (IsOwner) return;
-
-        // Sincronizamos la capa visual/física en las pantallas de los demás clientes
         gameObject.layer = current ? _rollingLayer : _normalLayer;
     }
 
-    private void TogglePhysics(bool isRollingState)
+    private void TogglePhysics(bool isRollingState, bool enableCC = true)
     {
         if (isRollingState)
         {
+            if (_cc != null) _cc.enabled = false;
+            rb.isKinematic = false;
+
             gameObject.layer = _rollingLayer;
             rb.useGravity = false;
         }
         else
         {
+            rb.isKinematic = true;
+
+            // IMPORTANTE: Solo encendemos el CC si no morimos durante el roll. 
+            // Si morimos, respetamos que PlayerNetworkStateMachine lo quiere apagado.
+            if (_cc != null && enableCC) _cc.enabled = true;
+
             gameObject.layer = _normalLayer;
             rb.useGravity = _originalGravityState;
         }

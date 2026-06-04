@@ -14,9 +14,7 @@ public class PlayerAiming : NetworkBehaviour
 
     private void Awake()
     {
-        mainCamera = Camera.main; // Cacheo la referencia a la cámara principal para optimizar el rendimiento
-        groundPlane = new Plane(Vector3.up, Vector3.zero); // Plano horizontal en y=0
-
+        groundPlane = new Plane(Vector3.up, Vector3.zero);
         _playerHealth = GetComponent<PlayerHealth>();
     }
 
@@ -49,13 +47,22 @@ public class PlayerAiming : NetworkBehaviour
 
     private void ProcessAiming()
     {
+        // Si la cámara es nula o fue destruida por el motor, la buscamos.
+        if (mainCamera == null || !mainCamera.gameObject.activeInHierarchy)
+        {
+            mainCamera = Camera.main;
+
+            // Si el motor aún no instanció la nueva cámara de Mapa1, abortamos el frame para no crashear.
+            if (mainCamera == null) return;
+        }
+
         Ray ray = mainCamera.ScreenPointToRay(currentAimInput);
 
         if ((groundPlane.Raycast(ray, out float hitDistance)))
         {
             Vector3 pointToLook = ray.GetPoint(hitDistance);
+            pointToLook.y = transform.position.y;
 
-            pointToLook.y = transform.position.y; // Mantengo la altura del jugador para evitar que mire hacia arriba o abajo
             Vector3 lookDirection = pointToLook - transform.position;
 
             if (lookDirection.sqrMagnitude > 0.01f)

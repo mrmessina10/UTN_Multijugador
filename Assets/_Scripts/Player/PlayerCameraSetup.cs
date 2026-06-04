@@ -1,28 +1,30 @@
-using Unity.Netcode;
 using UnityEngine;
+using Unity.Netcode;
 using Unity.Cinemachine;
 
 public class PlayerCameraSetup : NetworkBehaviour
 {
+    [Header("Settings")]
+    [Tooltip("Opcional: Arrastra un transform hijo (ej. el cuello o torso) para afinar el encuadre. Si está vacío, usará la raíz del jugador.")]
+    [SerializeField] private Transform targetPoint;
+
     public override void OnNetworkSpawn()
     {
+        // Regla de oro: La cámara local solo se vincula al jugador que me pertenece
         if (!IsOwner) return;
 
-        //busca incluso si el objeto está apagado (inactivo)
-        CinemachineCamera cinemachineCam = FindAnyObjectByType<CinemachineCamera>(FindObjectsInactive.Include);
+        CinemachineCamera vCam = FindFirstObjectByType<CinemachineCamera>();
 
-        if (cinemachineCam != null)
+        if (vCam != null)
         {
-            cinemachineCam.Follow = transform;
+            Transform followTarget = targetPoint != null ? targetPoint : transform;
 
-            //el objeto se activa si estaba apagado
-            cinemachineCam.gameObject.SetActive(true);
-
-            Debug.Log($"[ÉXITO] Cámara encontrada y activada. Siguiendo a: {gameObject.name}");
+            vCam.Follow = followTarget;
+            vCam.LookAt = followTarget; 
         }
         else
         {
-            Debug.LogError("[ERROR] Definitivamente no hay ninguna CinemachineCamera en la Jerarquía de la escena.");
+            Debug.LogError("PlayerCameraSetup: CinemachineCamera no encontrada en la escena.");
         }
     }
 }
