@@ -21,6 +21,6 @@ MonoBehaviour:
   OnShootEvent:
     m_PersistentCalls:
       m_Calls: []
-  OnCrouchEvent:
+  OnRollEvent:
     m_PersistentCalls:
       m_Calls: []

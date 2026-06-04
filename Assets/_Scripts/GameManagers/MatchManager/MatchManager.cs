@@ -8,26 +8,21 @@ public class MatchManager : NetworkBehaviour
 {
     public static MatchManager Instance { get; private set; }
 
-    public enum MatchState { WaitingForPlayers, RoundStarting, RoundActive, RoundEnded }
+    public NetworkVariable<double> stateTimer = new NetworkVariable<double>(0);
 
-    [Header("Match State")]
-    public NetworkVariable<MatchState> currentState = new NetworkVariable<MatchState>(MatchState.WaitingForPlayers);
-
-    // Patrón timestamp evita el colapso de red
-    public NetworkVariable<double> stateEndTime = new NetworkVariable<double>(0);
-
-    [Header("Match Settings")]
-    [SerializeField] private int minPlayersToStart = 2;
-    [SerializeField] private float startDelay = 3f;
-    [SerializeField] private float roundDuration = 60f;
-    [SerializeField] private float endDelay = 5f;
-    [SerializeField] private int roundsToWin = 3;
+    [Header("TDM Settings")]
+    public int minPlayersToStart = 2;
+    public float startDelay = 3f;
+    public int scoreToWin = 10;
+    public float respawnDelay = 3f;
+    public float endDelay = 5f;
+    public string mainMenuSceneName = "MainMenu";
 
     public MatchScoreController Score { get; private set; }
     public MatchSpawnController Spawner { get; private set; }
 
-    private Coroutine _matchLoopCoroutine;
     private HashSet<ulong> _syncedClients = new HashSet<ulong>();
+    private IMatchState _currentState;
 
     private void Awake()
     {
@@ -44,7 +39,8 @@ public class MatchManager : NetworkBehaviour
 
         NetworkManager.Singleton.SceneManager.OnSceneEvent += HandleSceneEvent;
 
-        // Forzamos la validación de clientes ya listos al cargar (Ej. el Host)
+        ChangeState(new ConnectingState());
+
         foreach (ulong clientId in NetworkManager.Singleton.ConnectedClientsIds)
         {
             StartCoroutine(SpawnAndCheckReady(clientId));
@@ -54,7 +50,6 @@ public class MatchManager : NetworkBehaviour
     public override void OnNetworkDespawn()
     {
         if (!IsServer || NetworkManager.Singleton == null) return;
-
         if (NetworkManager.Singleton.SceneManager != null)
             NetworkManager.Singleton.SceneManager.OnSceneEvent -= HandleSceneEvent;
     }
@@ -69,79 +64,63 @@ public class MatchManager : NetworkBehaviour
 
     private IEnumerator SpawnAndCheckReady(ulong clientId)
     {
-        // Permite al cliente inicializar la memoria interna de Netcode
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(1f);
 
         if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
         {
-            if (client.PlayerObject == null)
-            {
-                Spawner.SpawnPlayerForClient(clientId);
-            }
-
+            if (client.PlayerObject == null) Spawner.SpawnPlayerForClient(clientId);
             _syncedClients.Add(clientId);
 
-            if (currentState.Value == MatchState.WaitingForPlayers &&
+            if (_currentState is ConnectingState &&
                 _syncedClients.Count >= minPlayersToStart &&
                 _syncedClients.Count == NetworkManager.Singleton.ConnectedClients.Count)
             {
-                if (_matchLoopCoroutine != null) StopCoroutine(_matchLoopCoroutine);
-                _matchLoopCoroutine = StartCoroutine(MatchLoopRoutine());
+                ChangeState(new MatchStartState());
             }
         }
     }
 
-    private IEnumerator MatchLoopRoutine()
+    private void Update()
     {
-        bool matchIsOver = false;
+        if (!IsServer || _currentState == null) return;
+        _currentState.Tick(this);
+    }
 
-        while (!matchIsOver)
+    public void ChangeState(IMatchState newState)
+    {
+        if (!IsServer) return;
+
+        _currentState?.Exit(this);
+        _currentState = newState;
+        _currentState?.Enter(this);
+    }
+
+    public int GetSyncedClientsCount()
+    {
+        return _syncedClients.Count;
+    }
+
+    public bool IsMatchActive()
+    {
+        return _currentState is MatchActiveState;
+    }
+
+    public void RecordDeathAndRespawn(ulong deadClientId, ulong killerClientId)
+    {
+        if (!IsServer || !IsMatchActive()) return;
+
+        Score.AddPointForKill(deadClientId, killerClientId);
+
+        if (Score.CheckMatchWinner(scoreToWin))
         {
-            currentState.Value = MatchState.RoundStarting;
-            stateEndTime.Value = NetworkManager.Singleton.ServerTime.Time + startDelay;
-
-            // Asegura que el PlayerObject existe localmente antes de forzar su teletransporte
-            yield return new WaitForSeconds(0.5f);
-            Spawner.RespawnAllPlayers();
-
-            while (NetworkManager.Singleton.ServerTime.Time < stateEndTime.Value)
-            {
-                yield return null;
-            }
-
-            currentState.Value = MatchState.RoundActive;
-            stateEndTime.Value = NetworkManager.Singleton.ServerTime.Time + roundDuration;
-            MatchScoreController.Team roundWinner = MatchScoreController.Team.None;
-
-            while (NetworkManager.Singleton.ServerTime.Time < stateEndTime.Value)
-            {
-                Score.UpdateAlivePlayersStats();
-                roundWinner = Score.CheckRoundWinner();
-
-                if (roundWinner != MatchScoreController.Team.None) break;
-
-                yield return new WaitForSeconds(0.2f);
-            }
-
-            Score.AddPointToTeam(roundWinner);
-            matchIsOver = Score.CheckMatchWinner(roundsToWin);
-
-            currentState.Value = MatchState.RoundEnded;
-            stateEndTime.Value = NetworkManager.Singleton.ServerTime.Time + endDelay;
-
-            while (NetworkManager.Singleton.ServerTime.Time < stateEndTime.Value)
-            {
-                yield return null;
-            }
-
-            if (!matchIsOver) Score.AdvanceRound();
+            ChangeState(new MatchEndedState());
         }
-
-        EndMatch();
-    }
-
-    private void EndMatch()
-    {
-        NetworkManager.Singleton.SceneManager.LoadScene("MainMenu", UnityEngine.SceneManagement.LoadSceneMode.Single);
+        else
+        {
+            if (_currentState is MatchActiveState activeState)
+            {
+                activeState.QueueRespawn(deadClientId, respawnDelay);
+            }
+        }
     }
 }

@@ -16,12 +16,13 @@ GameObject:
   - component: {fileID: 5999814522962453662}
   - component: {fileID: 5696634786448962698}
   - component: {fileID: 3646898743812222220}
-  - component: {fileID: 7427097725780671051}
   - component: {fileID: -8830606798427918826}
   - component: {fileID: 2789898067465534402}
   - component: {fileID: 2146159193531950984}
   - component: {fileID: 4846300630601328836}
   - component: {fileID: 2709537302171898725}
+  - component: {fileID: -531355770956584881}
+  - component: {fileID: -8465322761857589509}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -249,20 +250,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &7427097725780671051
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1735449044781690328}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0937a5e38847d44d955d4e9e0182730, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerStateMachine
-  ShowTopMostFoldoutHeaderGroup: 1
-  _inputReader: {fileID: 11400000, guid: 6277852d148bfc643b15c30240bdc13c, type: 2}
 --- !u!114 &-8830606798427918826
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -335,7 +322,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   ShowTopMostFoldoutHeaderGroup: 1
-  stateMachine: {fileID: 7427097725780671051}
+  playerMovement: {fileID: -8465322761857589509}
   playerCollider: {fileID: 5595058913208119026}
   maxHealth: 5
   currentHealth:
@@ -362,7 +349,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerRoll
   ShowTopMostFoldoutHeaderGroup: 1
   inputReader: {fileID: 11400000, guid: 6277852d148bfc643b15c30240bdc13c, type: 2}
-  stateMachine: {fileID: 7427097725780671051}
+  playerMovement: {fileID: -8465322761857589509}
   rb: {fileID: 4253920231852275608}
   playerCollider: {fileID: 5595058913208119026}
   rollDistance: 5
@@ -373,6 +360,38 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+--- !u!114 &-531355770956584881
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735449044781690328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87ae4bfd2da0c09498dcd38a264f73ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerNetworkStateMachine
+  ShowTopMostFoldoutHeaderGroup: 1
+  StateType:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+--- !u!114 &-8465322761857589509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735449044781690328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a66c0d9bc6e2c341843e5e97e0ef817, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
+  ShowTopMostFoldoutHeaderGroup: 1
+  _inputReader: {fileID: 11400000, guid: 6277852d148bfc643b15c30240bdc13c, type: 2}
 --- !u!1 &3802925444146050524
 GameObject:
   m_ObjectHideFlags: 0

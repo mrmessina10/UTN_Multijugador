@@ -49,7 +49,7 @@ public class ActiveFlightState : IProjectileState
             // 1. CHOQUE CON ENTIDAD DAÑABLE
             if (hit.collider.TryGetComponent(out IDamageable damageableTarget))
             {
-                damageableTarget.TakeDamage(context.damage, context.effectType, context.effectDuration);
+                damageableTarget.TakeDamage(context.damage, context.effectType, context.effectDuration, context.shooterNetworkId);
 
                 if (context.remainingPenetration > 0)
                 {

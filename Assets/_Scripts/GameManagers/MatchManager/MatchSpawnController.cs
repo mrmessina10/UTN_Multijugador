@@ -3,11 +3,10 @@ using UnityEngine;
 
 public class MatchSpawnController : NetworkBehaviour
 {
-    [Header("Spawn Points — asignar en el Inspector")]
-    [SerializeField] private Transform[] redTeamSpawnPoints;   // arrastrá los objetos acá
-    [SerializeField] private Transform[] blueTeamSpawnPoints;  // arrastrá los objetos acá
+    [Header("Spawning Settings")]
     [SerializeField] private Transform[] fallbackSpawnPoints;
-    [SerializeField] private GameObject playerPrefab;
+    [SerializeField] private GameObject redPlayerPrefab;
+    [SerializeField] private GameObject bluePlayerPrefab;
 
     public void SpawnPlayerForClient(ulong clientId)
     {
@@ -16,33 +15,29 @@ public class MatchSpawnController : NetworkBehaviour
         if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client)
             && client.PlayerObject != null) return;
 
-        // Log de diagnóstico directo
-        Debug.Log($"[SpawnController] Arrays — Red: {redTeamSpawnPoints.Length} | Blue: {blueTeamSpawnPoints.Length}");
+        var redSpawns = GameObject.FindGameObjectsWithTag("RedTeamSpawn");
+        var blueSpawns = GameObject.FindGameObjectsWithTag("BlueTeamSpawn");
 
-        Transform targetSpawn = GetSpawnForClient(clientId);
-
-        Debug.Log($"[SpawnController] ClientId {clientId} → {targetSpawn.name} @ {targetSpawn.position}");
-
-        float halfHeight = playerPrefab.GetComponent<CharacterController>().height / 2f;
-        var instance = Instantiate(playerPrefab, targetSpawn.position + Vector3.up * halfHeight, targetSpawn.rotation);
-        instance.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
-    }
-
-    private Transform GetSpawnForClient(ulong clientId)
-    {
         bool isRed = clientId % 2 == 0;
-        var pool = isRed ? redTeamSpawnPoints : blueTeamSpawnPoints;
-
-        if (pool != null && pool.Length > 0)
-            return pool[clientId % (ulong)pool.Length];
-
-        Debug.LogError($"[SpawnController] ¡Pool de spawns VACÍO para clientId {clientId}! isRed={isRed}");
+        Transform targetSpawn = transform;
 
         if (fallbackSpawnPoints != null && fallbackSpawnPoints.Length > 0)
-            return fallbackSpawnPoints[0];
+            targetSpawn = fallbackSpawnPoints[0];
 
-        Debug.LogError("[SpawnController] Fallback también vacío. Usando transform del MatchManager.");
-        return transform;
+        if (isRed && redSpawns != null && redSpawns.Length > 0)
+            targetSpawn = redSpawns[clientId % (ulong)redSpawns.Length].transform;
+        else if (!isRed && blueSpawns != null && blueSpawns.Length > 0)
+            targetSpawn = blueSpawns[clientId % (ulong)blueSpawns.Length].transform;
+
+        GameObject prefabToSpawn = isRed ? redPlayerPrefab : bluePlayerPrefab;
+
+        GameObject playerInstance = Instantiate(
+            prefabToSpawn,
+            targetSpawn.position + (Vector3.up * 1.2f),
+            targetSpawn.rotation
+        );
+
+        playerInstance.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId, true);
     }
 
     public void RespawnAllPlayers()
@@ -51,12 +46,36 @@ public class MatchSpawnController : NetworkBehaviour
 
         foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
         {
-            if (client.PlayerObject == null) continue;
+            RespawnPlayer(client.ClientId);
+        }
+    }
 
-            Transform spawnPoint = GetSpawnForClient(client.ClientId);
+    public void RespawnPlayer(ulong clientId)
+    {
+        if (!IsServer) return;
 
-            if (client.PlayerObject.TryGetComponent(out PlayerStateController psc))
-                psc.ServerRespawnPlayer(spawnPoint.position);
+        var redSpawns = GameObject.FindGameObjectsWithTag("RedTeamSpawn");
+        var blueSpawns = GameObject.FindGameObjectsWithTag("BlueTeamSpawn");
+
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
+        {
+            if (client.PlayerObject == null) return;
+
+            bool isRed = clientId % 2 == 0;
+            Transform spawnPoint = transform;
+
+            if (fallbackSpawnPoints != null && fallbackSpawnPoints.Length > 0)
+                spawnPoint = fallbackSpawnPoints[0];
+
+            if (isRed && redSpawns != null && redSpawns.Length > 0)
+                spawnPoint = redSpawns[clientId % (ulong)redSpawns.Length].transform;
+            else if (!isRed && blueSpawns != null && blueSpawns.Length > 0)
+                spawnPoint = blueSpawns[clientId % (ulong)blueSpawns.Length].transform;
+
+            if (client.PlayerObject.TryGetComponent(out PlayerNetworkStateMachine stateMachine))
+            {
+                stateMachine.ServerRespawnPlayer(spawnPoint.position);
+            }
         }
     }
 }

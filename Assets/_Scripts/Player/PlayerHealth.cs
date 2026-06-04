@@ -16,16 +16,15 @@ using System.Collections;
 public class PlayerHealth : NetworkBehaviour, IDamageable
 {
     [Header("Dependencies")]
-    [SerializeField] private PlayerStateMachine stateMachine;
+    // 1. REFERENCIA ACTUALIZADA AL NUEVO SCRIPT
+    [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private Collider playerCollider;
-    // [SerializeField] private Animator animator; // TODO: Para futuras animaciones
 
     [Header("Health Settings")]
     [Tooltip("Permite ajustar el TTK de la partida desde el Inspector (Requisito 1)")]
     [SerializeField] private int maxHealth = 5;
-    public int MaxHealth => maxHealth; // Propiedad para que la UI lea el valor
+    public int MaxHealth => maxHealth;
 
-    // --- VARIABLES DE RED ---
     public NetworkVariable<int> currentHealth = new NetworkVariable<int>(
         5,
         NetworkVariableReadPermission.Everyone,
@@ -38,8 +37,7 @@ public class PlayerHealth : NetworkBehaviour, IDamageable
         NetworkVariableWritePermission.Server
     );
 
-    // Cualquier script de UI puede suscribirse a estos eventos sin que PlayerHealth sepa que existen
-    public event Action<int, int> OnHealthChanged; // Pasa: (vida actual, vida máxima)
+    public event Action<int, int> OnHealthChanged;
     public event Action OnPlayerDied;
 
     public override void OnNetworkSpawn()
@@ -50,7 +48,6 @@ public class PlayerHealth : NetworkBehaviour, IDamageable
             isDead.Value = false;
         }
 
-        // Suscripción a cambios de estado en red
         currentHealth.OnValueChanged += HandleHealthChanged;
         isDead.OnValueChanged += HandleDeathState;
 
@@ -63,8 +60,7 @@ public class PlayerHealth : NetworkBehaviour, IDamageable
         isDead.OnValueChanged -= HandleDeathState;
     }
 
-    // --- LÓGICA DE DAÑO ---
-    public void TakeDamage(float amount, StatusEffect effect, float effectDuration)
+    public void TakeDamage(float amount, StatusEffect effect, float effectDuration, ulong killerId)
     {
         if (!IsServer || isDead.Value) return;
 
@@ -72,7 +68,22 @@ public class PlayerHealth : NetworkBehaviour, IDamageable
 
         if (currentHealth.Value <= 0)
         {
-            Die();
+            currentHealth.Value = 0;
+            isDead.Value = true;
+
+            if (TryGetComponent(out PlayerNetworkStateMachine stateMachine))
+            {
+                stateMachine.NotifyDeath();
+            }
+            else
+            {
+                Debug.LogError($"[PlayerHealth] ERROR FATAL: El prefab {gameObject.name} no tiene asignado el componente PlayerNetworkStateMachine.");
+            }
+
+            if (MatchManager.Instance != null)
+            {
+                MatchManager.Instance.RecordDeathAndRespawn(OwnerClientId, killerId);
+            }
         }
         else if (effect != StatusEffect.None)
         {
@@ -84,42 +95,26 @@ public class PlayerHealth : NetworkBehaviour, IDamageable
         }
     }
 
-    private void Die()
-    {
-        currentHealth.Value = 0;
-        isDead.Value = true;
-    }
-
-    // --- SISTEMA DE CROWD CONTROL ---
     [ClientRpc]
     private void ApplyStatusClientRpc(StatusEffect effect, float duration, ClientRpcParams rpcParams = default)
     {
-        if (!IsOwner) return; // Solo el cliente afectado ejecuta la corrutina
+        if (!IsOwner) return;
         StartCoroutine(StatusEffectCoroutine(effect, duration));
     }
 
     private IEnumerator StatusEffectCoroutine(StatusEffect effect, float duration)
     {
-        if (stateMachine == null) yield break;
+        if (playerMovement == null) yield break;
 
-        // APLICAR
-        if (effect == StatusEffect.Stun) stateMachine.enabled = false;
-        else if (effect == StatusEffect.Slow)
-        {
-            // stateMachine.SetSpeedMultiplier(0.5f); 
-        }
+        // 2. APLICAR CROWD CONTROL AL NUEVO SCRIPT
+        if (effect == StatusEffect.Stun) playerMovement.enabled = false;
 
         yield return new WaitForSeconds(duration);
 
-        // REMOVER
-        if (effect == StatusEffect.Stun && !isDead.Value) stateMachine.enabled = true;
-        else if (effect == StatusEffect.Slow && !isDead.Value)
-        {
-            // stateMachine.SetSpeedMultiplier(1f);
-        }
+        // 3. REMOVER CROWD CONTROL
+        if (effect == StatusEffect.Stun && !isDead.Value) playerMovement.enabled = true;
     }
 
-    // --- CALLBACKS VISUALES / EVENTOS ---
     private void HandleHealthChanged(int previousValue, int newValue)
     {
         OnHealthChanged?.Invoke(newValue, maxHealth);
@@ -127,20 +122,20 @@ public class PlayerHealth : NetworkBehaviour, IDamageable
 
     private void HandleDeathState(bool wasDead, bool isNowDead)
     {
-        if (isNowDead) // EL JUGADOR MUERE
+        if (isNowDead)
         {
             if (playerCollider != null) playerCollider.enabled = false;
-            if (IsOwner && stateMachine != null) stateMachine.enabled = false;
+            // 4. APAGAR MOVIMIENTO AL MORIR
+            if (IsOwner && playerMovement != null) playerMovement.enabled = false;
             if (IsOwner) OnPlayerDied?.Invoke();
-
-            // TODO: animator.SetTrigger("Die");
         }
-        else // EL JUGADOR REVIVE (isNowDead == false)
+        else
         {
             if (playerCollider != null) playerCollider.enabled = true;
-            if (IsOwner && stateMachine != null) stateMachine.enabled = true;
+            // 5. ENCENDER MOVIMIENTO AL REVIVIR
+            if (IsOwner && playerMovement != null) playerMovement.enabled = true;
 
-            // TODO: animator.SetTrigger("Respawn");
+            OnHealthChanged?.Invoke(currentHealth.Value, maxHealth);
         }
     }
 
@@ -148,7 +143,6 @@ public class PlayerHealth : NetworkBehaviour, IDamageable
     {
         if (!IsServer) return;
 
-        // Restablecemos las variables. Esto disparará los eventos OnValueChanged en todos los clientes.
         currentHealth.Value = maxHealth;
         isDead.Value = false;
     }

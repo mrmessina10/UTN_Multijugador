@@ -1,70 +1,37 @@
 using Unity.Netcode;
-using UnityEngine;
 
 public class MatchScoreController : NetworkBehaviour
 {
-    public enum Team { None, Red, Blue }
-
-    [Header("Match Stats")]
-    public NetworkVariable<int> currentRound = new NetworkVariable<int>(1);
     public NetworkVariable<int> redTeamScore = new NetworkVariable<int>(0);
     public NetworkVariable<int> blueTeamScore = new NetworkVariable<int>(0);
 
-    [Header("Tactical Stats")]
-    public NetworkVariable<int> redPlayersAlive = new NetworkVariable<int>(0);
-    public NetworkVariable<int> bluePlayersAlive = new NetworkVariable<int>(0);
-
-    // Método llamado por el MatchManager en cada frame durante la ronda activa
-    public void UpdateAlivePlayersStats()
+    public void AddPointForKill(ulong deadClientId, ulong killerClientId)
     {
         if (!IsServer) return;
 
-        int redAlive = 0;
-        int blueAlive = 0;
+        if (deadClientId % 2 == 0) blueTeamScore.Value++;
+        else redTeamScore.Value++;
 
-        foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(killerClientId, out var killer))
         {
-            if (client.PlayerObject != null && client.PlayerObject.TryGetComponent(out PlayerHealth health))
+            if (killer.PlayerObject != null && killer.PlayerObject.TryGetComponent(out PlayerScore killerScore))
             {
-                if (!health.isDead.Value)
-                {
-                    if (client.ClientId % 2 == 0) redAlive++;
-                    else blueAlive++;
-                }
+                killerScore.AddKill();
             }
         }
 
-        redPlayersAlive.Value = redAlive;
-        bluePlayersAlive.Value = blueAlive;
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(deadClientId, out var dead))
+        {
+            if (dead.PlayerObject != null && dead.PlayerObject.TryGetComponent(out PlayerScore deadScore))
+            {
+                deadScore.AddDeath();
+            }
+        }
     }
 
-    // Evaluación matemática para determinar si un equipo fue eliminado
-    public Team CheckRoundWinner()
+    public bool CheckMatchWinner(int targetScore)
     {
-        if (!IsServer) return Team.None;
-
-        if (redPlayersAlive.Value == 0 && bluePlayersAlive.Value > 0) return Team.Blue;
-        if (bluePlayersAlive.Value == 0 && redPlayersAlive.Value > 0) return Team.Red;
-
-        return Team.None;
-    }
-
-    public void AddPointToTeam(Team winningTeam)
-    {
-        if (!IsServer) return;
-
-        if (winningTeam == Team.Red) redTeamScore.Value++;
-        else if (winningTeam == Team.Blue) blueTeamScore.Value++;
-    }
-
-    public bool CheckMatchWinner(int roundsToWin)
-    {
-        return redTeamScore.Value >= roundsToWin || blueTeamScore.Value >= roundsToWin;
-    }
-
-    public void AdvanceRound()
-    {
-        if (!IsServer) return;
-        currentRound.Value++;
+        if (!IsServer) return false;
+        return redTeamScore.Value >= targetScore || blueTeamScore.Value >= targetScore;
     }
 }

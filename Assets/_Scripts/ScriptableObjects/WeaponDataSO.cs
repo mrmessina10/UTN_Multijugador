@@ -10,7 +10,7 @@ public enum StatusEffect //enum para los efectos de estado que los proyectiles p
 // 2. La Interfaz actualizada para recibir estados
 public interface IDamageable
 {
-    void TakeDamage(float amount, StatusEffect effect, float effectDuration);
+    void TakeDamage(float amount, StatusEffect effect, float effectDuration, ulong killerId);
 }
 
 [CreateAssetMenu(fileName = "NewWeapon", menuName = "Game/Weapon Data")]
